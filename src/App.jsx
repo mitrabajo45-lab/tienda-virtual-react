@@ -1,9 +1,10 @@
-
 import { Routes, Route, Link } from "react-router-dom";
 import Home from "./pages/Home";
 import Productos from "./pages/Productos";
 import Contacto from "./pages/Contacto";
 import Admin from "./pages/Admin";
+import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -27,7 +28,15 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/productos" element={<Productos />} />
           <Route path="/contacto" element={<Contacto />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </main>
 

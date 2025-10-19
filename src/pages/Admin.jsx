@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { db } from "../firebase";
+import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
 
 export default function Admin() {
   const [productos, setProductos] = useState([]);
@@ -9,14 +11,34 @@ export default function Admin() {
     imagen: ""
   });
 
-  // Manejar cambios en los inputs
+  const productosRef = collection(db, "productos");
+
+  // 🔄 Cargar productos desde Firestore al iniciar
+  useEffect(() => {
+    const cargarProductos = async () => {
+      try {
+        const snapshot = await getDocs(productosRef);
+        const lista = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setProductos(lista);
+      } catch (error) {
+        console.error("Error al cargar productos:", error);
+      }
+    };
+
+    cargarProductos();
+  }, []);
+
+  // 📝 Manejar cambios en los inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Manejar envío del formulario
-  const handleSubmit = (e) => {
+  // ✅ Guardar producto en Firestore
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.nombre || !formData.precio || !formData.categoria || !formData.imagen) {
@@ -24,16 +46,25 @@ export default function Admin() {
       return;
     }
 
-    // Agrega el nuevo producto a la lista
-    setProductos([...productos, { ...formData, id: Date.now() }]);
-
-    // Limpia el formulario
-    setFormData({ nombre: "", precio: "", categoria: "", imagen: "" });
+    try {
+      const nuevo = await addDoc(productosRef, formData);
+      setProductos([...productos, { ...formData, id: nuevo.id }]);
+      setFormData({ nombre: "", precio: "", categoria: "", imagen: "" });
+    } catch (error) {
+      console.error("Error al guardar en Firestore:", error);
+      alert("Hubo un problema al guardar el producto.");
+    }
   };
 
-  // Eliminar producto
-  const handleDelete = (id) => {
-    setProductos(productos.filter((p) => p.id !== id));
+  // 🗑️ Eliminar producto de Firestore
+  const handleDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, "productos", id));
+      setProductos(productos.filter((p) => p.id !== id));
+    } catch (error) {
+      console.error("Error al eliminar en Firestore:", error);
+      alert("Hubo un problema al eliminar el producto.");
+    }
   };
 
   return (
