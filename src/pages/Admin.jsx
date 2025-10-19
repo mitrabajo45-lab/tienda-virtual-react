@@ -10,7 +10,7 @@ export default function Admin() {
     categoria: "",
     imagen: ""
   });
-  const [mensaje, setMensaje] = useState(""); // ← nuevo estado para la alerta
+  const [mensaje, setMensaje] = useState(""); // Estado para la alerta
 
   const productosRef = collection(db, "productos");
 
@@ -41,20 +41,28 @@ export default function Admin() {
 
     if (!formData.nombre || !formData.precio || !formData.categoria || !formData.imagen) {
       setMensaje("❌ Por favor completa todos los campos");
-      setTimeout(() => setMensaje(""), 3000);
+      setTimeout(() => setMensaje(""), 5000);
       return;
     }
 
     try {
-      const nuevo = await addDoc(productosRef, formData);
-      setProductos([...productos, { ...formData, id: nuevo.id }]);
+      await addDoc(productosRef, formData);
+
+      // Recargar productos desde Firestore para evitar duplicados
+      const snapshot = await getDocs(productosRef);
+      const lista = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setProductos(lista);
+
       setFormData({ nombre: "", precio: "", categoria: "", imagen: "" });
       setMensaje("✅ Producto guardado correctamente");
-      setTimeout(() => setMensaje(""), 3000);
+      setTimeout(() => setMensaje(""), 5000);
     } catch (error) {
       console.error("Error al guardar en Firestore:", error);
       setMensaje("❌ Hubo un problema al guardar el producto");
-      setTimeout(() => setMensaje(""), 3000);
+      setTimeout(() => setMensaje(""), 5000);
     }
   };
 
@@ -62,10 +70,12 @@ export default function Admin() {
     try {
       await deleteDoc(doc(db, "productos", id));
       setProductos(productos.filter((p) => p.id !== id));
+      setMensaje("🗑️ Producto eliminado correctamente");
+      setTimeout(() => setMensaje(""), 5000);
     } catch (error) {
       console.error("Error al eliminar en Firestore:", error);
       setMensaje("❌ Hubo un problema al eliminar el producto");
-      setTimeout(() => setMensaje(""), 3000);
+      setTimeout(() => setMensaje(""), 5000);
     }
   };
 
@@ -73,16 +83,18 @@ export default function Admin() {
     <div>
       <h2 className="text-2xl font-bold mb-4">Panel de Administración</h2>
 
-      {/* Alerta visual */}
+      {/* Alerta visual con animación */}
       {mensaje && (
-  <div
-    className={`mb-4 p-3 rounded-md text-white font-medium transition-all duration-500 ease-in-out transform ${
-      mensaje.includes("✅") ? "bg-green-500" : "bg-red-500"
-    } ${mensaje ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
-  >
-    {mensaje}
-  </div>
-)}
+        <div
+          className={`mb-4 p-3 rounded-md text-white font-medium transition-all duration-500 ease-in-out transform ${
+            mensaje.includes("✅") || mensaje.includes("🗑️")
+              ? "bg-green-500"
+              : "bg-red-500"
+          } ${mensaje ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+        >
+          {mensaje}
+        </div>
+      )}
 
       {/* Formulario para agregar producto */}
       <form
