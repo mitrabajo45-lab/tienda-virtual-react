@@ -10,10 +10,10 @@ export default function Admin() {
     categoria: "",
     imagen: ""
   });
+  const [mensaje, setMensaje] = useState(""); // ← nuevo estado para la alerta
 
   const productosRef = collection(db, "productos");
 
-  // 🔄 Cargar productos desde Firestore al iniciar
   useEffect(() => {
     const cargarProductos = async () => {
       try {
@@ -31,18 +31,17 @@ export default function Admin() {
     cargarProductos();
   }, []);
 
-  // 📝 Manejar cambios en los inputs
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // ✅ Guardar producto en Firestore
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.nombre || !formData.precio || !formData.categoria || !formData.imagen) {
-      alert("Por favor completa todos los campos");
+      setMensaje("❌ Por favor completa todos los campos");
+      setTimeout(() => setMensaje(""), 3000);
       return;
     }
 
@@ -50,26 +49,40 @@ export default function Admin() {
       const nuevo = await addDoc(productosRef, formData);
       setProductos([...productos, { ...formData, id: nuevo.id }]);
       setFormData({ nombre: "", precio: "", categoria: "", imagen: "" });
+      setMensaje("✅ Producto guardado correctamente");
+      setTimeout(() => setMensaje(""), 3000);
     } catch (error) {
       console.error("Error al guardar en Firestore:", error);
-      alert("Hubo un problema al guardar el producto.");
+      setMensaje("❌ Hubo un problema al guardar el producto");
+      setTimeout(() => setMensaje(""), 3000);
     }
   };
 
-  // 🗑️ Eliminar producto de Firestore
   const handleDelete = async (id) => {
     try {
       await deleteDoc(doc(db, "productos", id));
       setProductos(productos.filter((p) => p.id !== id));
     } catch (error) {
       console.error("Error al eliminar en Firestore:", error);
-      alert("Hubo un problema al eliminar el producto.");
+      setMensaje("❌ Hubo un problema al eliminar el producto");
+      setTimeout(() => setMensaje(""), 3000);
     }
   };
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Panel de Administración</h2>
+
+      {/* Alerta visual */}
+      {mensaje && (
+  <div
+    className={`mb-4 p-3 rounded-md text-white font-medium transition-all duration-500 ease-in-out transform ${
+      mensaje.includes("✅") ? "bg-green-500" : "bg-red-500"
+    } ${mensaje ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+  >
+    {mensaje}
+  </div>
+)}
 
       {/* Formulario para agregar producto */}
       <form
