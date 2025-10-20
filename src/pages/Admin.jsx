@@ -10,8 +10,8 @@ export default function Admin() {
     categoria: "",
     imagen: ""
   });
-  const [mensaje, setMensaje] = useState(null); // null cuando no hay mensaje
-  const [tipoMensaje, setTipoMensaje] = useState(""); // "exito" o "error"
+  //const [mensaje, setMensaje] = useState(null); // null cuando no hay mensaje
+  //const [tipoMensaje, setTipoMensaje] = useState(""); // "exito" o "error"
 
   const productosRef = collection(db, "productos");
 
