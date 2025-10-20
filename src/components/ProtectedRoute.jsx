@@ -7,43 +7,43 @@ import { collection, getDocs } from "firebase/firestore";
 
 export default function ProtectedRoute({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [admins, setAdmins] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 🔹 Obtenemos los emails de admins desde Firestore
+    // 🔹 Traer lista de emails de admins
     const fetchAdmins = async () => {
-      const snapshot = await getDocs(collection(db, "admins"));
-      const lista = snapshot.docs.map((doc) => doc.data().email);
-      setAdmins(lista);
+      try {
+        const snapshot = await getDocs(collection(db, "admins"));
+        const lista = snapshot.docs.map((doc) => doc.data().email);
+        setAdmins(lista);
+      } catch (error) {
+        console.error("Error al obtener admins:", error);
+      }
     };
 
     fetchAdmins();
 
-    // 🔹 Obtenemos el usuario actual
-    onUserStateChange((u) => {
-      setUser(u);
+    // 🔹 Escuchar cambios de usuario (sesión Firebase)
+    const unsubscribe = onUserStateChange((currentUser) => {
+      setUser(currentUser);
       setLoading(false);
     });
+
+    return () => unsubscribe();
   }, []);
 
   if (loading) return <p>Cargando...</p>;
 
+  // 🔹 Si no hay usuario, redirige al login
   if (!user) return <Navigate to="/login" replace />;
 
+  // 🔹 Si el usuario no está en la lista de admins, cerrar sesión y redirigir al login
   if (!admins.includes(user.email)) {
-    return (
-      <div className="p-4">
-        <p>No tienes permisos para acceder a esta sección.</p>
-        <button
-          onClick={logout}
-          className="mt-2 bg-red-500 text-white px-3 py-1 rounded"
-        >
-          Cerrar sesión
-        </button>
-      </div>
-    );
+    logout(); // opcional: cierra sesión automáticamente
+    return <Navigate to="/login" replace />;
   }
 
+  // 🔹 Usuario autenticado y admin: mostrar contenido
   return children;
 }
