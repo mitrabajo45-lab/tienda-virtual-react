@@ -1,3 +1,4 @@
+// src/App.jsx
 import { useState, useEffect } from "react";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
@@ -15,11 +16,10 @@ export default function App() {
   const [admins, setAdmins] = useState([]);
   const navigate = useNavigate();
 
+  // Obtener usuario y admins desde Firestore
   useEffect(() => {
-    // Escuchar cambios de usuario
     const unsubscribe = onUserStateChange((u) => setUser(u));
 
-    // Traer lista de admins
     const fetchAdmins = async () => {
       const snapshot = await getDocs(collection(db, "admins"));
       const lista = snapshot.docs.map((doc) => doc.data().email);
@@ -48,9 +48,10 @@ export default function App() {
             <Link to="/productos" className="hover:underline">Productos</Link>
             <Link to="/contacto" className="hover:underline">Contacto</Link>
             {isAdmin && (
-              <Link to="/admin" className="hover:underline text-indigo-600">
-                Admin
-              </Link>
+              <Link to="/admin" className="hover:underline text-indigo-600">Admin</Link>
+            )}
+            {!user && (
+              <Link to="/login" className="hover:underline text-indigo-600">Iniciar Sesión</Link>
             )}
             {user && (
               <button
@@ -64,7 +65,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* Contenido */}
+      {/* Contenido principal */}
       <main className="max-w-6xl mx-auto px-4 py-8">
         <Routes>
           <Route path="/" element={<Home />} />
