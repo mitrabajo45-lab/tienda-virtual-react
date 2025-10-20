@@ -1,51 +1,37 @@
-/*import { Navigate } from "react-router-dom";
-
-export default function ProtectedRoute({ children }) {
-  const isAuthenticated = localStorage.getItem("auth") === "true";
-
-  return isAuthenticated ? children : <Navigate to="/login" />;
-}*/
 // src/components/ProtectedRoute.jsx
 import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { onUserStateChange, logout } from "../auth";
 import { db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function ProtectedRoute({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // para esperar el estado del auth
+  const [loading, setLoading] = useState(true);
+  const [admins, setAdmins] = useState([]);
 
   useEffect(() => {
-    onUserStateChange(async (u) => {
-      if (!u) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
+    // 🔹 Obtenemos los emails de admins desde Firestore
+    const fetchAdmins = async () => {
+      const snapshot = await getDocs(collection(db, "admins"));
+      const lista = snapshot.docs.map((doc) => doc.data().email);
+      setAdmins(lista);
+    };
 
-      try {
-        // Verifica si el usuario está en la colección 'admins'
-        const adminRef = doc(db, "admins", u.uid); // usa UID del usuario
-        const adminSnap = await getDoc(adminRef);
+    fetchAdmins();
 
-        if (adminSnap.exists()) {
-          setUser(u); // es admin
-        } else {
-          setUser(null); // no es admin
-        }
-      } catch (error) {
-        console.error("Error al verificar admin:", error);
-        setUser(null);
-      }
-
+    // 🔹 Obtenemos el usuario actual
+    onUserStateChange((u) => {
+      setUser(u);
       setLoading(false);
     });
   }, []);
 
   if (loading) return <p>Cargando...</p>;
 
-  if (!user) {
+  if (!user) return <Navigate to="/login" replace />;
+
+  if (!admins.includes(user.email)) {
     return (
       <div className="p-4">
         <p>No tienes permisos para acceder a esta sección.</p>
@@ -59,5 +45,5 @@ export default function ProtectedRoute({ children }) {
     );
   }
 
-  return children; // usuario admin
+  return children;
 }

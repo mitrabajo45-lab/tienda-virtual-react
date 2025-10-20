@@ -1,42 +1,91 @@
+// src/pages/Login.jsx
 import React, { useState } from "react";
-import { login } from "../auth"; // tu función de login con Firebase
+import { useNavigate } from "react-router-dom";
+import { login } from "../auth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [mensaje, setMensaje] = useState(null);
+  const [tipoMensaje, setTipoMensaje] = useState(""); // "exito" o "error"
+
+  const navigate = useNavigate();
+
+  const mostrarMensaje = (msg, tipo) => {
+    setMensaje(msg);
+    setTipoMensaje(tipo);
+    setTimeout(() => {
+      setMensaje(null);
+      setTipoMensaje("");
+    }, 4000);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await login(email, password);
-      // el ProtectedRoute automáticamente redirige al admin si es admin
+      mostrarMensaje("✅ Sesión iniciada correctamente", "exito");
+      setTimeout(() => navigate("/admin"), 1000); // redirige después de 1s
     } catch (err) {
-      setError(err.message);
+      console.error(err);
+      mostrarMensaje("❌ Email o contraseña incorrectos", "error");
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-20 bg-white p-6 rounded shadow">
-      <h2 className="text-xl font-bold mb-4">Iniciar sesión</h2>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <input
-          type="email"
-          placeholder="Correo electrónico"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border px-3 py-2 rounded"
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border px-3 py-2 rounded"
-        />
-        <button type="submit" className="bg-indigo-600 text-white py-2 rounded">
-          Iniciar sesión
+    <div className="max-w-md mx-auto mt-16 p-6 bg-white rounded shadow">
+      <h2 className="text-2xl font-bold mb-4 text-center">Iniciar Sesión</h2>
+
+      {/* Toast */}
+      {mensaje && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            backgroundColor: tipoMensaje === "exito" ? "#16a34a" : "#dc2626",
+            color: "white",
+            padding: "12px 20px",
+            borderRadius: "8px",
+            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+            zIndex: 9999,
+            fontWeight: "bold",
+          }}
+        >
+          {mensaje}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div>
+          <label className="block mb-1 font-medium">Email</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            placeholder="admin@correo.com"
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block mb-1 font-medium">Contraseña</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            placeholder="********"
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
+        >
+          Iniciar Sesión
         </button>
       </form>
     </div>
