@@ -1,5 +1,4 @@
 // src/App.jsx
-import { useState, useEffect } from "react";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Productos from "./pages/Productos";
@@ -7,30 +6,11 @@ import Contacto from "./pages/Contacto";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { onUserStateChange, logout } from "./auth";
-import { db } from "./firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { useAuth } from "./context/AuthContext"; // 👈 import nuevo
 
 export default function App() {
-  const [user, setUser] = useState(null);
-  const [admins, setAdmins] = useState([]);
+  const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
-
-  // Obtener usuario y admins desde Firestore
-  useEffect(() => {
-    const unsubscribe = onUserStateChange((u) => setUser(u));
-
-    const fetchAdmins = async () => {
-      const snapshot = await getDocs(collection(db, "admins"));
-      const lista = snapshot.docs.map((doc) => doc.data().email);
-      setAdmins(lista);
-    };
-    fetchAdmins();
-
-    return () => unsubscribe();
-  }, []);
-
-  const isAdmin = user && admins.includes(user.email);
 
   const handleLogout = async () => {
     await logout();
