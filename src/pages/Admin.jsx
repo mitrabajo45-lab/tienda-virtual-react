@@ -10,7 +10,8 @@ export default function Admin() {
     categoria: "",
     imagen: ""
   });
-  const [mensaje, setMensaje] = useState(""); // Estado para la alerta
+  const [mensaje, setMensaje] = useState(null); // null cuando no hay mensaje
+  const [tipoMensaje, setTipoMensaje] = useState(""); // "exito" o "error"
 
   const productosRef = collection(db, "productos");
 
@@ -25,11 +26,22 @@ export default function Admin() {
         setProductos(lista);
       } catch (error) {
         console.error("Error al cargar productos:", error);
+        mostrarMensaje("❌ Error al cargar productos", "error");
       }
     };
 
     cargarProductos();
   }, []);
+
+  const mostrarMensaje = (msg, tipo) => {
+    setMensaje(msg);
+    setTipoMensaje(tipo);
+
+    setTimeout(() => {
+      setMensaje(null);
+      setTipoMensaje("");
+    }, 5000); // desaparece después de 5 segundos
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,15 +52,14 @@ export default function Admin() {
     e.preventDefault();
 
     if (!formData.nombre || !formData.precio || !formData.categoria || !formData.imagen) {
-      setMensaje("❌ Por favor completa todos los campos");
-      setTimeout(() => setMensaje(""), 5000);
+      mostrarMensaje("❌ Por favor completa todos los campos", "error");
       return;
     }
 
     try {
       await addDoc(productosRef, formData);
 
-      // Recargar productos desde Firestore para evitar duplicados
+      // Recargar productos
       const snapshot = await getDocs(productosRef);
       const lista = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -57,12 +68,10 @@ export default function Admin() {
       setProductos(lista);
 
       setFormData({ nombre: "", precio: "", categoria: "", imagen: "" });
-      setMensaje("✅ Producto guardado correctamente");
-      setTimeout(() => setMensaje(""), 5000);
+      mostrarMensaje("✅ Producto guardado correctamente", "exito");
     } catch (error) {
       console.error("Error al guardar en Firestore:", error);
-      setMensaje("❌ Hubo un problema al guardar el producto");
-      setTimeout(() => setMensaje(""), 5000);
+      mostrarMensaje("❌ Hubo un problema al guardar el producto", "error");
     }
   };
 
@@ -70,33 +79,29 @@ export default function Admin() {
     try {
       await deleteDoc(doc(db, "productos", id));
       setProductos(productos.filter((p) => p.id !== id));
-      setMensaje("🗑️ Producto eliminado correctamente");
-      setTimeout(() => setMensaje(""), 5000);
+      mostrarMensaje("🗑️ Producto eliminado correctamente", "exito");
     } catch (error) {
       console.error("Error al eliminar en Firestore:", error);
-      setMensaje("❌ Hubo un problema al eliminar el producto");
-      setTimeout(() => setMensaje(""), 5000);
+      mostrarMensaje("❌ Hubo un problema al eliminar el producto", "error");
     }
   };
 
   return (
-    <div>
+    <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Panel de Administración</h2>
 
-      {/* Alerta visual con animación */}
+      {/* Mensaje */}
       {mensaje && (
         <div
-          className={`mb-4 p-3 rounded-md text-white font-medium transition-all duration-500 ease-in-out transform ${
-            mensaje.includes("✅") || mensaje.includes("🗑️")
-              ? "bg-green-500"
-              : "bg-red-500"
-          } ${mensaje ? "opacity-100 scale-100" : "opacity-0 scale-95"}`}
+          className={`mb-4 p-3 rounded-md text-white font-medium transition-opacity duration-500 ${
+            tipoMensaje === "exito" ? "bg-green-500" : "bg-red-500"
+          }`}
         >
           {mensaje}
         </div>
       )}
 
-      {/* Formulario para agregar producto */}
+      {/* Formulario */}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-4 rounded-lg shadow mb-6 grid gap-3 md:grid-cols-2"
