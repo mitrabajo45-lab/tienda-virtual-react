@@ -74,13 +74,13 @@ export default function App() {
           
           {/* Ruta protegida */}
           <Route
-  path="/admin"
-  element={
-    <ProtectedRoute user={user} isAdmin={isAdmin}>
-      <Admin />
-    </ProtectedRoute>
-  }
-/>
+            path="/admin"
+            element={
+            <ProtectedRoute user={user} isAdmin={isAdmin}>
+              <Admin />
+            </ProtectedRoute>
+            }
+          />
 
           {/* Login */}
           <Route
