@@ -40,7 +40,7 @@ export default function Admin() {
     setTimeout(() => {
       setMensaje(null);
       setTipoMensaje("");
-    }, 5000); // desaparece después de 5 segundos
+    }, 5000);
   };
 
   const handleChange = (e) => {
@@ -51,13 +51,19 @@ export default function Admin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // 🔹 Depuración con console.log
+    console.log("handleSubmit ejecutado");
+    console.log("Datos del formulario:", formData);
+
     if (!formData.nombre || !formData.precio || !formData.categoria || !formData.imagen) {
+      console.log("Campos incompletos");
       mostrarMensaje("❌ Por favor completa todos los campos", "error");
       return;
     }
 
     try {
       await addDoc(productosRef, formData);
+      console.log("Producto agregado correctamente");
 
       // Recargar productos
       const snapshot = await getDocs(productosRef);
@@ -91,7 +97,9 @@ export default function Admin() {
       <h2 className="text-2xl font-bold mb-4">Panel de Administración</h2>
 
       {/* Mensaje */}
-      {mensaje && <p>{mensaje}</p>}
+      <div>
+        <p>Mensaje actual: {mensaje ? mensaje : "no hay mensaje"}</p>
+      </div>
 
       {/* Formulario */}
       <form
