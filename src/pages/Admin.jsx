@@ -11,6 +11,10 @@ export default function Admin() {
     imagen: ""
   });
   
+  // 🔹 Estados para mensajes tipo toast
+  const [mensaje, setMensaje] = useState(null);
+  const [tipoMensaje, setTipoMensaje] = useState(""); // "exito" o "error"
+
   const productosRef = collection(db, "productos");
 
   useEffect(() => {
