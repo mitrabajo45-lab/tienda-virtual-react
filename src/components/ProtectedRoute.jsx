@@ -3,10 +3,8 @@ import { Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ProtectedRoute({ user, isAdmin, children }) {
-  // Si no hay usuario → redirige a login
   if (!user) return <Navigate to="/login" replace />;
 
-  // Si hay usuario pero no es admin → mostrar modal
   if (!isAdmin) {
     return (
       <AnimatePresence>
@@ -29,7 +27,7 @@ export default function ProtectedRoute({ user, isAdmin, children }) {
               ❌ No tienes permisos para acceder a esta sección.
             </p>
             <button
-              onClick={() => window.location.href = "/"} // redirige a Home
+              onClick={() => (window.location.href = "/")}
               className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
             >
               Volver al inicio
@@ -40,6 +38,5 @@ export default function ProtectedRoute({ user, isAdmin, children }) {
     );
   }
 
-  // Usuario admin → permite acceso
   return children;
 }

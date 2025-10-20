@@ -16,7 +16,7 @@ export default function App() {
   const [admins, setAdmins] = useState([]);
   const navigate = useNavigate();
 
-  // Detectar usuario logueado y obtener admins desde Firestore
+  // Obtener usuario y admins desde Firestore
   useEffect(() => {
     const unsubscribe = onUserStateChange((u) => setUser(u));
 
@@ -54,10 +54,7 @@ export default function App() {
               <Link to="/login" className="hover:underline text-indigo-600">Iniciar Sesión</Link>
             )}
             {user && (
-              <button
-                onClick={handleLogout}
-                className="hover:underline text-red-500"
-              >
+              <button onClick={handleLogout} className="hover:underline text-red-500">
                 Cerrar sesión
               </button>
             )}
@@ -71,24 +68,15 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/productos" element={<Productos />} />
           <Route path="/contacto" element={<Contacto />} />
-          
-          {/* Ruta protegida */}
           <Route
             path="/admin"
             element={
-            <ProtectedRoute user={user} isAdmin={isAdmin}>
-              <Admin />
-            </ProtectedRoute>
+              <ProtectedRoute user={user} isAdmin={isAdmin}>
+                <Admin />
+              </ProtectedRoute>
             }
           />
-
-          {/* Login */}
-          <Route
-            path="/login"
-            element={
-              !user ? <Login /> : <Home /> // si ya está logueado, redirige a Home
-            }
-          />
+          <Route path="/login" element={!user ? <Login /> : <Home />} />
         </Routes>
       </main>
 
