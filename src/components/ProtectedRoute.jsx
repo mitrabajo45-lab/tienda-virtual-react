@@ -1,48 +1,13 @@
 // src/components/ProtectedRoute.jsx
-import React, { useState, useEffect } from "react";
-import { onUserStateChange, logout } from "../auth";
-import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function ProtectedRoute({ children }) {
-  const [user, setUser] = useState(null);
-  const [admins, setAdmins] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [noPermisos, setNoPermisos] = useState(false);
-
-  useEffect(() => {
-    const fetchAdmins = async () => {
-      try {
-        const snapshot = await getDocs(collection(db, "admins"));
-        const lista = snapshot.docs.map((doc) => doc.data().email);
-        setAdmins(lista);
-      } catch (error) {
-        console.error("Error al obtener admins:", error);
-      }
-    };
-
-    fetchAdmins();
-
-    const unsubscribe = onUserStateChange((currentUser) => {
-      setUser(currentUser);
-      setLoading(false);
-
-      if (currentUser && !admins.includes(currentUser.email)) {
-        setNoPermisos(true);
-      } else {
-        setNoPermisos(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [admins]);
-
-  if (loading) return <p>Cargando...</p>;
-
+export default function ProtectedRoute({ user, isAdmin, children }) {
+  // Si no hay usuario → redirige a login
   if (!user) return <Navigate to="/login" replace />;
 
-  if (noPermisos) {
+  // Si hay usuario pero no es admin → mostrar modal
+  if (!isAdmin) {
     return (
       <AnimatePresence>
         <motion.div
@@ -64,10 +29,10 @@ export default function ProtectedRoute({ children }) {
               ❌ No tienes permisos para acceder a esta sección.
             </p>
             <button
-              onClick={logout}
+              onClick={() => window.location.href = "/"} // redirige a Home
               className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
             >
-              Cerrar sesión
+              Volver al inicio
             </button>
           </motion.div>
         </motion.div>
@@ -75,5 +40,6 @@ export default function ProtectedRoute({ children }) {
     );
   }
 
+  // Usuario admin → permite acceso
   return children;
 }

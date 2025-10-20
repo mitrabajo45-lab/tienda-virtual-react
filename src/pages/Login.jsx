@@ -1,15 +1,27 @@
 // src/pages/Login.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../auth";
+import { login, onUserStateChange } from "../auth"; // onUserStateChange para detectar usuario logueado
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mensaje, setMensaje] = useState(null);
   const [tipoMensaje, setTipoMensaje] = useState(""); // "exito" o "error"
+  const [user, setUser] = useState(null);
 
   const navigate = useNavigate();
+
+  // Detectar si el usuario ya está logueado
+  useEffect(() => {
+    const unsubscribe = onUserStateChange((u) => {
+      setUser(u);
+      if (u) {
+        navigate("/"); // si ya está logueado, redirige a Home
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
 
   const mostrarMensaje = (msg, tipo) => {
     setMensaje(msg);
@@ -25,7 +37,16 @@ export default function Login() {
     try {
       await login(email, password);
       mostrarMensaje("✅ Sesión iniciada correctamente", "exito");
-      setTimeout(() => navigate("/admin"), 1000); // redirige después de 1s
+
+      // Redirigir según rol admin
+      setTimeout(() => {
+        const adminEmails = ["admin@correo.com"]; // aquí podrías traer desde Firestore
+        if (adminEmails.includes(email)) {
+          navigate("/admin");
+        } else {
+          navigate("/"); // usuarios normales van a Home
+        }
+      }, 1000);
     } catch (err) {
       console.error(err);
       mostrarMensaje("❌ Email o contraseña incorrectos", "error");
