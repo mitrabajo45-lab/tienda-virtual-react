@@ -32,60 +32,54 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-16 p-6 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-4 text-center">Iniciar Sesión</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
+      <div className="bg-white p-6 md:p-8 rounded-lg shadow-lg w-full max-w-md relative">
 
-      {mensaje && (
-        <div
-          style={{
-            position: "fixed",
-            top: "20px",
-            right: "20px",
-            backgroundColor: tipoMensaje === "exito" ? "#16a34a" : "#dc2626",
-            color: "white",
-            padding: "12px 20px",
-            borderRadius: "8px",
-            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-            zIndex: 9999,
-            fontWeight: "bold",
-          }}
-        >
-          {mensaje}
-        </div>
-      )}
+        {mensaje && (
+          <div
+            className={`absolute top-[-60px] left-0 right-0 mx-auto w-fit px-6 py-3 rounded text-white font-semibold shadow-md transition-all duration-300 ${
+              tipoMensaje === "exito" ? "bg-green-500" : "bg-red-500"
+            }`}
+          >
+            {mensaje}
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div>
-          <label className="block mb-1 font-medium">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border rounded px-3 py-2"
-            placeholder="admin@correo.com"
-            required
-          />
-        </div>
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Iniciar Sesión</h2>
 
-        <div>
-          <label className="block mb-1 font-medium">Contraseña</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border rounded px-3 py-2"
-            placeholder="********"
-            required
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@correo.com"
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+          </div>
 
-        <button
-          type="submit"
-          className="bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
-        >
-          Iniciar Sesión
-        </button>
-      </form>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="********"
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded transition"
+          >
+            Iniciar Sesión
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
