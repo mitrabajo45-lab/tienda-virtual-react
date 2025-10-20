@@ -10,8 +10,8 @@ export default function Admin() {
     categoria: "",
     imagen: ""
   });
-  //const [mensaje, setMensaje] = useState(null); // null cuando no hay mensaje
-  //const [tipoMensaje, setTipoMensaje] = useState(""); // "exito" o "error"
+  const [mensaje, setMensaje] = useState(null);
+  const [tipoMensaje, setTipoMensaje] = useState("");
 
   const productosRef = collection(db, "productos");
 
@@ -29,18 +29,16 @@ export default function Admin() {
         mostrarMensaje("❌ Error al cargar productos", "error");
       }
     };
-
     cargarProductos();
   }, []);
 
   const mostrarMensaje = (msg, tipo) => {
     setMensaje(msg);
     setTipoMensaje(tipo);
-
     setTimeout(() => {
       setMensaje(null);
       setTipoMensaje("");
-    }, 5000); // desaparece después de 5 segundos
+    }, 5000);
   };
 
   const handleChange = (e) => {
@@ -64,7 +62,6 @@ export default function Admin() {
       await addDoc(productosRef, formData);
       console.log("Producto agregado correctamente");
 
-      // Recargar productos
       const snapshot = await getDocs(productosRef);
       const lista = snapshot.docs.map((doc) => ({
         id: doc.id,
@@ -95,7 +92,6 @@ export default function Admin() {
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Panel de Administración</h2>
 
-      {/* Mensaje tipo toast */}
       {mensaje && (
         <div
           style={{
@@ -115,7 +111,6 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Formulario */}
       <form
         onSubmit={handleSubmit}
         className="bg-white p-4 rounded-lg shadow mb-6 grid gap-3 md:grid-cols-2"
@@ -178,7 +173,6 @@ export default function Admin() {
         </div>
       </form>
 
-      {/* Lista de productos */}
       <h3 className="text-xl font-semibold mb-2">Productos agregados</h3>
 
       {productos.length === 0 ? (
