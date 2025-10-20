@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { db } from "../firebase";
-import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+import { db, storage } from "../firebase";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
 
 export default function Admin() {
   const [productos, setProductos] = useState([]);
@@ -8,10 +19,15 @@ export default function Admin() {
     nombre: "",
     precio: "",
     categoria: "",
-    imagen: ""
+    descripcion: "",
+    stock: "",
+    imagen: "",
   });
-  const [mensaje, setMensaje] = useState(null); // null cuando no hay mensaje
-  const [tipoMensaje, setTipoMensaje] = useState(""); // "exito" o "error"
+  const [mensaje, setMensaje] = useState(null);
+  const [tipoMensaje, setTipoMensaje] = useState("");
+  const [imagenArchivo, setImagenArchivo] = useState(null);
+  const [subiendo, setSubiendo] = useState(false);
+  const [progreso, setProgreso] = useState(0);
 
   const productosRef = collection(db, "productos");
 
@@ -21,7 +37,7 @@ export default function Admin() {
         const snapshot = await getDocs(productosRef);
         const lista = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
         }));
         setProductos(lista);
       } catch (error) {
@@ -36,11 +52,10 @@ export default function Admin() {
   const mostrarMensaje = (msg, tipo) => {
     setMensaje(msg);
     setTipoMensaje(tipo);
-
     setTimeout(() => {
       setMensaje(null);
       setTipoMensaje("");
-    }, 5000); // desaparece después de 5 segundos
+    }, 4000);
   };
 
   const handleChange = (e) => {
@@ -48,35 +63,78 @@ export default function Admin() {
     setFormData({ ...formData, [name]: value });
   };
 
+  // ✅ Subir imagen a Firebase Storage
+  const handleUpload = () => {
+    if (!imagenArchivo) {
+      mostrarMensaje("⚠️ Selecciona una imagen primero", "error");
+      return;
+    }
+
+    const timestamp = Date.now();
+    const storageRef = ref(storage, `uploads/${timestamp}-${imagenArchivo.name}`);
+    const uploadTask = uploadBytesResumable(storageRef, imagenArchivo);
+
+    setSubiendo(true);
+    setProgreso(0);
+
+    uploadTask.on(
+      "state_changed",
+      (snapshot) => {
+        const progreso = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        setProgreso(Math.round(progreso));
+      },
+      (error) => {
+        console.error("Error al subir imagen:", error);
+        mostrarMensaje("❌ Error al subir la imagen", "error");
+        setSubiendo(false);
+      },
+      () => {
+        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+          setFormData({ ...formData, imagen: url });
+          setSubiendo(false);
+          mostrarMensaje("✅ Imagen subida correctamente", "exito");
+        });
+      }
+    );
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("handleSubmit ejecutado");
-    console.log("Datos del formulario:", formData);
-
-    if (!formData.nombre || !formData.precio || !formData.categoria || !formData.imagen) {
-      console.log("Campos incompletos");
-      mostrarMensaje("❌ Por favor completa todos los campos", "error");
+    if (
+      !formData.nombre ||
+      !formData.precio ||
+      !formData.categoria ||
+      !formData.descripcion ||
+      !formData.stock ||
+      !formData.imagen
+    ) {
+      mostrarMensaje("❌ Completa todos los campos antes de guardar", "error");
       return;
     }
 
     try {
       await addDoc(productosRef, formData);
-      console.log("Producto agregado correctamente");
-
-      // Recargar productos
       const snapshot = await getDocs(productosRef);
       const lista = snapshot.docs.map((doc) => ({
         id: doc.id,
-        ...doc.data()
+        ...doc.data(),
       }));
       setProductos(lista);
 
-      setFormData({ nombre: "", precio: "", categoria: "", imagen: "" });
+      setFormData({
+        nombre: "",
+        precio: "",
+        categoria: "",
+        descripcion: "",
+        stock: "",
+        imagen: "",
+      });
+      setImagenArchivo(null);
       mostrarMensaje("✅ Producto guardado correctamente", "exito");
     } catch (error) {
-      console.error("Error al guardar en Firestore:", error);
-      mostrarMensaje("❌ Hubo un problema al guardar el producto", "error");
+      console.error("Error al guardar producto:", error);
+      mostrarMensaje("❌ Error al guardar el producto", "error");
     }
   };
 
@@ -86,16 +144,17 @@ export default function Admin() {
       setProductos(productos.filter((p) => p.id !== id));
       mostrarMensaje("🗑️ Producto eliminado correctamente", "exito");
     } catch (error) {
-      console.error("Error al eliminar en Firestore:", error);
-      mostrarMensaje("❌ Hubo un problema al eliminar el producto", "error");
+      console.error("Error al eliminar:", error);
+      mostrarMensaje("❌ Error al eliminar producto", "error");
     }
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Panel de Administración</h2>
+    <div className="p-4 max-w-5xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4 text-center">
+        Panel de Administración
+      </h2>
 
-      {/* Mensaje tipo toast */}
       {mensaje && (
         <div
           style={{
@@ -118,9 +177,9 @@ export default function Admin() {
       {/* Formulario */}
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-4 rounded-lg shadow mb-6 grid gap-3 md:grid-cols-2"
+        className="bg-white p-6 rounded-lg shadow grid gap-4 sm:grid-cols-2"
       >
-        <div>
+        <div className="sm:col-span-1">
           <label className="block text-sm font-medium mb-1">Nombre</label>
           <input
             type="text"
@@ -157,18 +216,50 @@ export default function Admin() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">URL de Imagen</label>
+          <label className="block text-sm font-medium mb-1">Stock</label>
           <input
-            type="text"
-            name="imagen"
-            value={formData.imagen}
+            type="number"
+            name="stock"
+            value={formData.stock}
             onChange={handleChange}
             className="w-full border rounded-md px-3 py-2"
-            placeholder="Ej: https://picsum.photos/seed/tv/600/400"
+            placeholder="Ej: 25"
           />
         </div>
 
-        <div className="md:col-span-2 flex justify-end">
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium mb-1">Descripción</label>
+          <textarea
+            name="descripcion"
+            value={formData.descripcion}
+            onChange={handleChange}
+            className="w-full border rounded-md px-3 py-2"
+            rows="3"
+            placeholder="Describe el producto..."
+          ></textarea>
+        </div>
+
+        <div className="sm:col-span-2 flex flex-col gap-2">
+          <label className="block text-sm font-medium mb-1">Imagen</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImagenArchivo(e.target.files[0])}
+            className="w-full border rounded-md px-3 py-2"
+          />
+          <button
+            type="button"
+            onClick={handleUpload}
+            disabled={subiendo}
+            className={`bg-blue-600 text-white px-4 py-2 rounded-md ${
+              subiendo ? "opacity-60 cursor-not-allowed" : "hover:bg-blue-700"
+            }`}
+          >
+            {subiendo ? `Subiendo... ${progreso}%` : "Subir Imagen"}
+          </button>
+        </div>
+
+        <div className="sm:col-span-2 flex justify-end">
           <button
             type="submit"
             className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
@@ -179,25 +270,32 @@ export default function Admin() {
       </form>
 
       {/* Lista de productos */}
-      <h3 className="text-xl font-semibold mb-2">Productos agregados</h3>
-
+      <h3 className="text-xl font-semibold mt-6 mb-2">Productos agregados</h3>
       {productos.length === 0 ? (
         <p className="text-gray-500">No hay productos aún.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {productos.map((p) => (
             <div
               key={p.id}
               className="bg-white rounded-lg shadow overflow-hidden flex flex-col"
             >
-              <img src={p.imagen} alt={p.nombre} className="w-full h-40 object-cover" />
+              <img
+                src={p.imagen}
+                alt={p.nombre}
+                className="w-full h-40 object-cover"
+              />
               <div className="p-4 flex-1 flex flex-col">
-                <h4 className="font-semibold">{p.nombre}</h4>
-                <p className="text-sm text-gray-500 mb-2">{p.categoria}</p>
-                <div className="font-bold text-indigo-600 mb-3">${p.precio}</div>
+                <h4 className="font-semibold text-lg">{p.nombre}</h4>
+                <p className="text-sm text-gray-600 mb-1">{p.categoria}</p>
+                <p className="text-sm text-gray-500 flex-1">{p.descripcion}</p>
+                <div className="font-bold text-indigo-600 mt-2">
+                  ${p.precio}
+                </div>
+                <p className="text-sm text-gray-500">Stock: {p.stock}</p>
                 <button
                   onClick={() => handleDelete(p.id)}
-                  className="mt-auto bg-red-500 text-white text-sm px-3 py-1 rounded-md hover:bg-red-600"
+                  className="mt-3 bg-red-500 text-white text-sm px-3 py-1 rounded-md hover:bg-red-600"
                 >
                   Eliminar
                 </button>
