@@ -40,7 +40,7 @@ export default function Admin() {
     setTimeout(() => {
       setMensaje(null);
       setTipoMensaje("");
-    }, 5000);
+    }, 5000); // desaparece después de 5 segundos
   };
 
   const handleChange = (e) => {
@@ -51,7 +51,6 @@ export default function Admin() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 🔹 Depuración con console.log
     console.log("handleSubmit ejecutado");
     console.log("Datos del formulario:", formData);
 
@@ -96,10 +95,25 @@ export default function Admin() {
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Panel de Administración</h2>
 
-      {/* Mensaje */}
-      <div>
-        <p>Mensaje actual: {mensaje ? mensaje : "no hay mensaje"}</p>
-      </div>
+      {/* Mensaje tipo toast */}
+      {mensaje && (
+        <div
+          style={{
+            position: "fixed",
+            top: "20px",
+            right: "20px",
+            backgroundColor: tipoMensaje === "exito" ? "#16a34a" : "#dc2626",
+            color: "white",
+            padding: "12px 20px",
+            borderRadius: "8px",
+            boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+            zIndex: 9999,
+            fontWeight: "bold",
+          }}
+        >
+          {mensaje}
+        </div>
+      )}
 
       {/* Formulario */}
       <form
