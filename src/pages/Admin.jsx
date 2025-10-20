@@ -91,15 +91,7 @@ export default function Admin() {
       <h2 className="text-2xl font-bold mb-4">Panel de Administración</h2>
 
       {/* Mensaje */}
-      {mensaje && (
-        <div
-          className={`mb-4 p-3 rounded-md text-white font-medium transition-opacity duration-500 ${
-            tipoMensaje === "exito" ? "bg-green-500" : "bg-red-500"
-          }`}
-        >
-          {mensaje}
-        </div>
-      )}
+      {mensaje && <p>{mensaje}</p>}
 
       {/* Formulario */}
       <form
