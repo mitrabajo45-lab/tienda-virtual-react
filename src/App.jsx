@@ -36,7 +36,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/login" element={<Login />} />
+          <Route
+  path="/admin"
+  element={
+    <ProtectedRoute>
+      <Admin />
+    </ProtectedRoute>
+  }
+/>
         </Routes>
       </main>
 
