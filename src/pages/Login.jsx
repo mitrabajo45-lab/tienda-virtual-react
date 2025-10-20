@@ -1,8 +1,14 @@
 // src/pages/Login.jsx
 import { useState } from "react";
-import { login } from "../auth"; // tu función de login con Firebase
 import { useNavigate } from "react-router-dom";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { login } from "../auth";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
@@ -18,65 +24,82 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       await login(email, password);
-      navigate("/"); // redirige al home
+      navigate("/admin");
     } catch (err) {
       console.error(err);
-      setError("Correo o contraseña incorrectos.");
+      setError("❌ Correo o contraseña incorrectos.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-white">
-      <Card className="w-full max-w-sm shadow-xl">
-        <CardHeader>
-          <CardTitle className="text-center text-2xl font-semibold text-indigo-600">
-            🛍️ Iniciar Sesión
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-blue-50 px-4">
+      {/* 💳 Tarjeta centrada con tamaño fijo */}
+      <Card className="w-[380px] shadow-2xl border border-indigo-100 bg-white/90 backdrop-blur-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl font-bold text-indigo-700">
+            🛍️ Bienvenido
           </CardTitle>
+          <p className="text-gray-500 text-sm mt-2">
+            Inicia sesión para administrar tus productos
+          </p>
         </CardHeader>
+
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-5 w-full"
+          >
             <div>
-              <label className="text-sm font-medium text-gray-600">Correo electrónico</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">
+                Correo electrónico
+              </label>
               <Input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="tuemail@ejemplo.com"
+                placeholder="admin@correo.com"
                 required
+                className="focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
               />
             </div>
+
             <div>
-              <label className="text-sm font-medium text-gray-600">Contraseña</label>
+              <label className="text-sm font-medium text-gray-700 mb-1 block">
+                Contraseña
+              </label>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
+                className="focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
               />
             </div>
+
             {error && (
-              <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-md p-2 text-sm">
-                <AlertCircle size={16} />
+              <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-md p-3 text-sm font-medium">
+                <AlertCircle size={18} />
                 {error}
               </div>
             )}
+
             <Button
               type="submit"
-              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold"
+              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-md transition"
               disabled={loading}
             >
-              {loading ? "Verificando..." : "Entrar"}
+              {loading ? "Verificando..." : "Iniciar Sesión"}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="text-center text-sm text-gray-500">
-          ¿No tienes cuenta? Contacta con el administrador.
+
+        <CardFooter className="text-center text-gray-500 text-sm">
+          © {new Date().getFullYear()} Mi Almacén de Electrodomésticos
         </CardFooter>
       </Card>
     </div>
