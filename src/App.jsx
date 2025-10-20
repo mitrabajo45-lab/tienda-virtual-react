@@ -1,15 +1,45 @@
-import { Routes, Route, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Productos from "./pages/Productos";
 import Contacto from "./pages/Contacto";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { onUserStateChange, logout } from "./auth";
+import { db } from "./firebase";
+import { collection, getDocs } from "firebase/firestore";
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [admins, setAdmins] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Escuchar cambios de usuario
+    const unsubscribe = onUserStateChange((u) => setUser(u));
+
+    // Traer lista de admins
+    const fetchAdmins = async () => {
+      const snapshot = await getDocs(collection(db, "admins"));
+      const lista = snapshot.docs.map((doc) => doc.data().email);
+      setAdmins(lista);
+    };
+    fetchAdmins();
+
+    return () => unsubscribe();
+  }, []);
+
+  const isAdmin = user && admins.includes(user.email);
+
+  const handleLogout = async () => {
+    await logout();      // cerrar sesión en Firebase
+    navigate("/login");  // redirigir al login
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
-      {/* Header / Navegación */}
+      {/* Header */}
       <header className="bg-white shadow sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-lg font-semibold">🛍️ Mi Almacén</h1>
@@ -17,12 +47,24 @@ export default function App() {
             <Link to="/" className="hover:underline">Inicio</Link>
             <Link to="/productos" className="hover:underline">Productos</Link>
             <Link to="/contacto" className="hover:underline">Contacto</Link>
-            <Link to="/admin" className="hover:underline text-indigo-600">Admin</Link>
+            {isAdmin && (
+              <Link to="/admin" className="hover:underline text-indigo-600">
+                Admin
+              </Link>
+            )}
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="hover:underline text-red-500"
+              >
+                Cerrar sesión
+              </button>
+            )}
           </nav>
         </div>
       </header>
 
-      {/* Contenido de cada página */}
+      {/* Contenido */}
       <main className="max-w-6xl mx-auto px-4 py-8">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -36,14 +78,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-  path="/admin"
-  element={
-    <ProtectedRoute>
-      <Admin />
-    </ProtectedRoute>
-  }
-/>
+          <Route path="/login" element={<Login />} />
         </Routes>
       </main>
 
