@@ -1,29 +1,32 @@
 // src/components/ProtectedRoute.jsx
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import { onUserStateChange } from "../auth"; // 👈 importa la función de tu auth.js
 
-export default function ProtectedRoute({ user, isAdmin, children }) {
-  // Si no hay usuario, redirige a login
-  if (!user) return <Navigate to="/login" replace />;
+export default function ProtectedRoute({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Si hay usuario pero no es admin, mostrar mensaje
-  if (!isAdmin) {
+  useEffect(() => {
+    const unsubscribe = onUserStateChange((currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (loading)
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div className="bg-white p-6 rounded-lg shadow-lg text-center max-w-sm mx-4">
-          <p className="text-red-600 font-bold text-lg mb-4">
-            ❌ No tienes permisos para acceder a esta sección.
-          </p>
-          <button
-            onClick={() => (window.location.href = "/")}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Volver al inicio
-          </button>
-        </div>
+      <div className="flex items-center justify-center min-h-screen text-gray-600">
+        Cargando...
       </div>
     );
-  }
 
-  // Si es admin, renderiza el contenido
+  if (!user) return <Navigate to="/login" replace />;
+
+  // 🔹 Si quisieras validar admin en el futuro (por email, por ejemplo)
+  // const isAdmin = user.email === "admin@tuempresa.com";
+  // if (!isAdmin) return <Navigate to="/" replace />;
+
   return children;
 }

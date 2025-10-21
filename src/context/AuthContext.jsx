@@ -1,7 +1,7 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useState } from "react";
-import { onUserStateChange, logout } from "../auth"; // 👈 tu lógica de Firebase Auth
-import { db } from "../firebase"; // 👈 conexión a tu Firestore
+import { onUserStateChange, logout as firebaseLogout } from "../auth";
+import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 
 const AuthContext = createContext();
@@ -12,17 +12,19 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Escucha cambios de autenticación
-    const unsubscribe = onUserStateChange((u) => setUser(u));
+    // 1️⃣ Escucha el estado de autenticación
+    const unsubscribe = onUserStateChange((u) => {
+      setUser(u);
+    });
 
-    // Obtiene lista de admins
+    // 2️⃣ Carga la lista de correos admin desde Firestore
     const fetchAdmins = async () => {
       try {
         const snapshot = await getDocs(collection(db, "admins"));
         const lista = snapshot.docs.map((doc) => doc.data().email);
         setAdmins(lista);
       } catch (error) {
-        console.error("Error al obtener admins:", error);
+        console.error("❌ Error al obtener admins:", error);
       } finally {
         setLoading(false);
       }
@@ -33,14 +35,22 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
-  const isAdmin = user && admins.includes(user.email);
+  // 3️⃣ Comprueba si el usuario autenticado está en la lista de admins
+  const isAdmin = user ? admins.includes(user.email) : false;
+
+  // 4️⃣ Cerrar sesión
+  const logout = async () => {
+    await firebaseLogout();
+    setUser(null);
+  };
 
   return (
     <AuthContext.Provider value={{ user, isAdmin, loading, logout }}>
-      {children}
+      {/* 🔹 Muestra el contenido solo cuando terminó de cargar */}
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
 
-// Custom hook para usar el contexto fácilmente
+// Custom hook para acceder fácilmente al contexto
 export const useAuth = () => useContext(AuthContext);
