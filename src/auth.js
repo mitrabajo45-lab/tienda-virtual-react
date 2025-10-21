@@ -7,3 +7,4 @@ export const login = (email, password) => signInWithEmailAndPassword(auth, email
 export const logout = () => signOut(auth);
 export const onUserStateChange = (callback) => onAuthStateChanged(auth, callback);
 
+
