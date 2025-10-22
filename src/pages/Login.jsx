@@ -36,12 +36,9 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
-      {/* Fondo degradado sutil */}
-      <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900"></div>
-
-      {/* Card principal */}
-      <Card className="relative z-10 w-full max-w-md p-8 bg-navy-800 text-white rounded-2xl shadow-xl">
+    <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-4">
+      {/* Card centrada */}
+      <Card className="relative z-10 w-full max-w-md p-8 bg-navy-800 text-white rounded-2xl shadow-2xl hover:shadow-3xl transition-shadow">
         <CardHeader className="text-center mb-6">
           <CardTitle className="text-3xl font-bold">Iniciar Sesión</CardTitle>
           <p className="text-gray-300 text-sm mt-2">
@@ -61,7 +58,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@correo.com"
                 required
-                className="focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-navy-700 text-white placeholder-gray-400"
+                className="bg-navy-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
               />
             </div>
 
@@ -75,7 +72,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-navy-700 text-white placeholder-gray-400"
+                className="bg-navy-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
               />
             </div>
 
