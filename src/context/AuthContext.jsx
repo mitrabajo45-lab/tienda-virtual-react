@@ -1,56 +1,50 @@
 // src/context/AuthContext.jsx
-import { createContext, useContext, useEffect, useState } from "react";
-import { onUserStateChange, logout as firebaseLogout } from "../auth";
-import { db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { createContext, useContext, useState, useEffect } from "react";
+import { auth } from "../firebase";
+import {
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from "firebase/auth";
 
 const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [admins, setAdmins] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Iniciar sesión
+  const login = (email, password) =>
+    signInWithEmailAndPassword(auth, email, password);
+
+  // Cerrar sesión
+  const logout = () => signOut(auth);
+
+  // Escucha los cambios de sesión
   useEffect(() => {
-    // 1️⃣ Escucha el estado de autenticación
-    const unsubscribe = onUserStateChange((u) => {
-      setUser(u);
-    });
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
 
-    // 2️⃣ Carga la lista de correos admin desde Firestore
-    const fetchAdmins = async () => {
-      try {
-        const snapshot = await getDocs(collection(db, "admins"));
-        const lista = snapshot.docs.map((doc) => doc.data().email);
-        setAdmins(lista);
-      } catch (error) {
-        console.error("❌ Error al obtener admins:", error);
-      } finally {
-        setLoading(false);
+      // 🔹 Aquí puedes definir manualmente el admin
+      // Ejemplo: si el correo es el del dueño de la tienda
+      if (currentUser?.email === "admin@almacen.com") {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
       }
-    };
 
-    fetchAdmins();
+      setLoading(false);
+    });
 
     return () => unsubscribe();
   }, []);
 
-  // 3️⃣ Comprueba si el usuario autenticado está en la lista de admins
-  const isAdmin = user ? admins.includes(user.email) : false;
-
-  // 4️⃣ Cerrar sesión
-  const logout = async () => {
-    await firebaseLogout();
-    setUser(null);
-  };
-
   return (
-    <AuthContext.Provider value={{ user, isAdmin, loading, logout }}>
-      {/* 🔹 Muestra el contenido solo cuando terminó de cargar */}
+    <AuthContext.Provider value={{ user, isAdmin, login, logout }}>
       {!loading && children}
     </AuthContext.Provider>
   );
-}
+};
 
-// Custom hook para acceder fácilmente al contexto
 export const useAuth = () => useContext(AuthContext);
