@@ -36,25 +36,23 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-white to-blue-50 px-4">
-      {/* 💳 Tarjeta centrada con tamaño fijo */}
-      <Card className="w-[380px] shadow-2xl border border-indigo-100 bg-white/90 backdrop-blur-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-indigo-700">
-            🛍️ Bienvenido
-          </CardTitle>
-          <p className="text-gray-500 text-sm mt-2">
-            Inicia sesión para administrar tus productos
+    <div className="relative min-h-screen flex items-center justify-center bg-gray-100">
+      {/* Fondo degradado sutil */}
+      <div className="absolute inset-0 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900"></div>
+
+      {/* Card principal */}
+      <Card className="relative z-10 w-full max-w-md p-8 bg-navy-800 text-white rounded-2xl shadow-xl">
+        <CardHeader className="text-center mb-6">
+          <CardTitle className="text-3xl font-bold">Iniciar Sesión</CardTitle>
+          <p className="text-gray-300 text-sm mt-2">
+            Accede a tu panel de administración
           </p>
         </CardHeader>
 
         <CardContent>
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col gap-5 w-full"
-          >
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">
+              <label className="block mb-1 text-sm font-medium text-gray-300">
                 Correo electrónico
               </label>
               <Input
@@ -63,12 +61,12 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@correo.com"
                 required
-                className="focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                className="focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-navy-700 text-white placeholder-gray-400"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1 block">
+              <label className="block mb-1 text-sm font-medium text-gray-300">
                 Contraseña
               </label>
               <Input
@@ -77,12 +75,12 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
-                className="focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"
+                className="focus:ring-2 focus:ring-gray-500 focus:border-gray-500 bg-navy-700 text-white placeholder-gray-400"
               />
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 rounded-md p-3 text-sm font-medium">
+              <div className="flex items-center gap-2 text-red-400 bg-red-900/20 border border-red-600 rounded-md p-3 text-sm font-medium">
                 <AlertCircle size={18} />
                 {error}
               </div>
@@ -90,7 +88,7 @@ export default function Login() {
 
             <Button
               type="submit"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-md transition"
+              className="w-full mt-2 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 rounded-md transition"
               disabled={loading}
             >
               {loading ? "Verificando..." : "Iniciar Sesión"}
@@ -98,7 +96,7 @@ export default function Login() {
           </form>
         </CardContent>
 
-        <CardFooter className="text-center text-gray-500 text-sm">
+        <CardFooter className="text-center text-gray-400 text-sm mt-4">
           © {new Date().getFullYear()} Mi Almacén de Electrodomésticos
         </CardFooter>
       </Card>
