@@ -1,4 +1,4 @@
-import { Routes, Route, Link, useNavigate } from "react-router-dom";
+import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import Productos from "./pages/Productos";
 import Contacto from "./pages/Contacto";
@@ -10,6 +10,7 @@ import { useAuth } from "./context/AuthContext";
 export default function App() {
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation(); // <-- Nuevo: Necesario para saber en qué ruta estamos
 
   const handleLogout = async () => {
     await logout();
@@ -51,7 +52,16 @@ export default function App() {
       </header>
 
       {/* Contenido principal */}
-      <main className="flex-1 max-w-6xl mx-auto px-4 py-8">
+      <main 
+        // Lógica Condicional: 
+        // Si NO es la ruta /admin, aplica el ancho máximo (max-w-6xl) y el centrado (mx-auto).
+        // Si ES /admin, solo aplica padding vertical (py-8) y usa todo el ancho disponible (w-full).
+        className={`flex-1 ${
+          location.pathname !== "/admin" 
+            ? "max-w-6xl mx-auto px-4 py-8" 
+            : "py-8 w-full" 
+        }`}
+      >
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/productos" element={<Productos />} />
