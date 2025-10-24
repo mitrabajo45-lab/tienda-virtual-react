@@ -5,19 +5,25 @@ import { collection, onSnapshot, query, orderBy, deleteDoc, doc } from 'firebase
 
 export default function Productos() {
     
-    // ... (Lógica de estados, useEffect, handleDelete se mantienen igual) ...
+    // ======================================================================
+    // ESTADOS
+    // ======================================================================
     const [esAdmin, setEsAdmin] = useState(false);
     const [productos, setProductos] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
-    // ... (código useEffect) ...
 
+    // ======================================================================
+    // EFECTOS y LÓGICA DE CARGA/AUTENTICACIÓN
+    // ======================================================================
     useEffect(() => {
+        // Lógica de Autenticación
         const authInstance = getAuth();
         const unsubscribeAuth = onAuthStateChanged(authInstance, (user) => {
             setEsAdmin(!!user); 
         });
 
+        // Carga de datos de Firestore en tiempo real
         const productosRef = collection(db, 'productos');
         const q = query(productosRef, orderBy('fechaCreacion', 'desc'));
 
@@ -43,6 +49,9 @@ export default function Productos() {
         };
     }, []);
 
+    // ======================================================================
+    // FUNCIÓN DE ELIMINACIÓN
+    // ======================================================================
     const handleDelete = async (id, nombre) => {
         if (!esAdmin) {
             alert("Acceso denegado. Solo los administradores pueden eliminar productos.");
@@ -62,6 +71,9 @@ export default function Productos() {
         }
     };
     
+    // ======================================================================
+    // RENDERIZADO
+    // ======================================================================
     if (cargando) {
         return <div className="p-10 text-center text-gray-500">Cargando productos...</div>;
     }
@@ -107,7 +119,7 @@ export default function Productos() {
                             <div className="flex justify-between items-start mb-2">
                                 {/* Bloque de Nombre y Descripción */}
                                 <div className="w-full pr-4">
-                                    <h3 className="text-xl font-bold mb-1 text-gray-900 line-clamp-1">
+                                    <h3 className="text-xl font-bold text-gray-900 line-clamp-2">
                                         {producto.nombre}
                                     </h3>
                                     <span className="inline-block text-indigo-600 text-xs font-semibold mt-1">
@@ -120,7 +132,7 @@ export default function Productos() {
 
                                 {/* Bloque de Precio y Stock (Derecha) */}
                                 <div className="flex flex-col items-end flex-shrink-0 pl-4">
-                                    <p className="text-2xl font-extrabold text-blue-600">${producto.precio}</p>
+                                    <p className="text-2xl font-extrabold text-red-600">${producto.precio}</p>
                                     <p className={`text-sm font-medium mt-1 ${producto.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
                                         Stock: {producto.stock}
                                     </p>
@@ -133,7 +145,6 @@ export default function Productos() {
                                     <div className="flex justify-start">
                                         <button
                                             onClick={() => handleDelete(producto.id, producto.nombre)}
-                                            // 🔑 SOLUCIÓN: Usamos estilo inline para forzar el ancho automático
                                             className="bg-red-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150 shadow-md"
                                             style={{ width: 'auto' }} 
                                         >

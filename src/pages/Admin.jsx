@@ -6,7 +6,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 export default function Admin() {
     
     // ======================================================================
-    // ESTADOS
+    // ESTADOS (Manteniendo la inicialización funcional)
     // ======================================================================
     const [formData, setFormData] = useState({ 
         nombre: "", 
@@ -112,9 +112,6 @@ export default function Admin() {
         }
     };
 
-    const styleAnchoCorto = { width: '320px', maxWidth: '320px' };
-    const styleAnchoDescripcion = { maxWidth: '512px' };
-
     // ======================================================================
     // RENDERIZADO
     // ======================================================================
@@ -139,7 +136,7 @@ export default function Admin() {
                 // Limitar el ancho del formulario y centrarlo
                 className="mx-auto p-8 bg-white rounded-3xl shadow-xl grid gap-x-8 gap-y-6 md:grid-cols-2 max-w-lg" 
             >
-                {/* Nombre y Precio (Usando w-full en los inputs para llenar el espacio) */}
+                {/* Nombre */}
                 <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700">Nombre</label>
                     <input
@@ -148,6 +145,8 @@ export default function Admin() {
                         placeholder="Ej: Televisor LG 55”"
                     />
                 </div>
+
+                {/* Precio */}
                 <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700">Precio</label>
                     <input
@@ -157,7 +156,7 @@ export default function Admin() {
                     />
                 </div>
 
-                {/* Categoría y Stock */}
+                {/* Categoría */}
                 <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700">Categoría</label>
                     <input
@@ -166,6 +165,8 @@ export default function Admin() {
                         placeholder="Ej: Televisores"
                     />
                 </div>
+
+                {/* Stock */}
                 <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700">Stock</label>
                     <input

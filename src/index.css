@@ -9,12 +9,22 @@ body {
   font-family: 'Inter', sans-serif;
 }
 
+/* 🔑 CLAVE DE LA CORRECCIÓN: Aplicamos max-width y box-sizing */
 input,
+textarea, /* Añadimos textarea para consistencia */
 button {
   border-radius: 0.375rem; /* rounded-md */
   border: 1px solid #d1d5db; /* border-gray-300 */
   padding: 0.5rem 0.75rem; /* px-3 py-2 */
   outline: none;
+  
+  /* --- CAMBIOS CLAVE PARA EVITAR EL ESTIRAMIENTO --- */
+  /* Asegura que el padding no cause desbordamiento */
+  box-sizing: border-box; 
+  /* Limita el ancho al 100% de su contenedor (el div de la columna) */
+  max-width: 100%; 
+  /* Si necesitas que siempre ocupen el espacio, usa width: 100%; junto con max-width */
+  width: 100%; 
 }
 
 input:focus,
@@ -26,6 +36,8 @@ button {
   background-color: #2563eb; /* bg-blue-600 */
   color: white;
   transition: background-color 0.3s ease;
+  /* El botón no necesita width: 100%, así que podemos anularlo para él */
+  width: auto; 
 }
 
 button:hover {
