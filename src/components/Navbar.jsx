@@ -12,90 +12,73 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  // Clases para los botones azules (Inicio, Productos, Contacto, Admin, Login)
-  const primaryButtonClasses = "bg-indigo-500 text-white font-semibold px-3 py-1.5 rounded-lg shadow-md hover:bg-indigo-600 transition duration-200 whitespace-nowrap";
-  // Clases para el botón Cerrar Sesión (rojo)
-  const logoutButtonClasses = "bg-red-600 text-white font-semibold px-3 py-1.5 rounded-lg shadow-md hover:bg-red-700 transition duration-200 focus:outline-none whitespace-nowrap";
-
-  // 🚨 ESTILO IN-LINE TEMPORAL para anular bordes y márgenes de los separadores 🚨
-  const inlineResetStyle = { 
-    textDecoration: 'none', 
-    borderRight: 'none', 
-    marginRight: '0',
-    paddingRight: '0'
-  };
-
   return (
-    <header className="bg-white shadow-lg sticky top-0 z-20">
-      
-      {/* ⚠️ CONTENEDOR PRINCIPAL: justify-center para centrar todo ⚠️ */}
-      <div className="w-full mx-auto px-4 py-3 flex items-center justify-center"> 
-        
-        {/* Contenedor interno: max-w-4xl para limitar y centrar el grupo de elementos */}
-        <div className="flex items-center space-x-8 max-w-4xl w-full justify-center relative">
+    <header>
+      {/* Navbar de Bootstrap: expand-lg para desktop, shadow para sombra */}
+      <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div className="container">
           
-          {/* 1. Logo/Título - Posición absoluta para no interferir en el centrado del nav */}
-          <h1 className="text-xl font-extrabold text-gray-900 flex items-center absolute left-0">
-            <span className="text-indigo-600 mr-2">🛍️</span> Mi Almacén
-          </h1>
+          {/* 1. Logo/Título (Siempre visible) */}
+          <Link to="/" className="navbar-brand fw-bold fs-4 text-dark">
+            <span className="text-primary me-2">🛍️</span> Mi Almacén
+          </Link>
 
-          {/* 2. Menú para pantallas grandes (Desktop) - Estará CENTRADO */}
-          <nav className="hidden md:flex items-center space-x-4 text-sm">
+          {/* Botón de toggle para móvil */}
+          <button 
+            className="navbar-toggler" 
+            type="button" 
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-expanded={menuOpen ? "true" : "false"}
+            aria-label="Toggle navigation"
+          >
+            <span className="navbar-toggler-icon"></span>
+          </button>
+
+          {/* 2. Contenido del menú */}
+          <div className={`collapse navbar-collapse ${menuOpen ? 'show' : ''}`} id="navbarNav">
             
-            {/* GRUPO A: Enlaces de navegación principales (Aplicamos estilos in-line) */}
-            <Link to="/" className={primaryButtonClasses} style={inlineResetStyle}>Inicio</Link>
-            <Link to="/productos" className={primaryButtonClasses} style={inlineResetStyle}>Productos</Link>
-            <Link to="/contacto" className={primaryButtonClasses} style={inlineResetStyle}>Contacto</Link>
-            
-            {/* GRUPO B: Botones de acción (Condicionales) */}
-            <div className="flex items-center space-x-4 ml-4">
+            <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+              {/* GRUPO A: Enlaces de navegación principales */}
+              <li className="nav-item">
+                <Link to="/" className="nav-link">Inicio</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/productos" className="nav-link">Productos</Link>
+              </li>
+              <li className="nav-item">
+                <Link to="/contacto" className="nav-link">Contacto</Link>
+              </li>
               
+              {/* GRUPO B: Botones de acción (Condicionales) */}
               {isAdmin && (
-                <Link to="/admin" className={primaryButtonClasses}>
-                  Admin
-                </Link>
+                <li className="nav-item">
+                  <Link to="/admin" className="btn btn-primary btn-sm ms-lg-2 mt-2 mt-lg-0">
+                    Admin
+                  </Link>
+                </li>
               )}
 
               {!user && (
-                <Link 
-                  to="/login" 
-                  className={primaryButtonClasses}
-                >
-                  Iniciar Sesión
-                </Link>
+                <li className="nav-item">
+                  <Link to="/login" className="btn btn-primary btn-sm ms-lg-2 mt-2 mt-lg-0">
+                    Iniciar Sesión
+                  </Link>
+                </li>
               )}
 
               {user && (
-                <button 
-                  onClick={handleLogout} 
-                  className={logoutButtonClasses} 
-                >
-                  Cerrar sesión
-                </button>
+                <li className="nav-item">
+                  <button 
+                    onClick={handleLogout} 
+                    className="btn btn-danger btn-sm ms-lg-2 mt-2 mt-lg-0" 
+                  >
+                    Cerrar sesión
+                  </button>
+                </li>
               )}
-            </div>
-          </nav>
-
-          {/* Botón de menú móvil (Movido a la derecha absoluta) */}
-          <button className="md:hidden text-2xl p-1 absolute right-0" onClick={() => setMenuOpen(!menuOpen)}>
-            ☰
-          </button>
+            </ul>
+          </div>
         </div>
-      </div>
-
-      {/* 3. Menú móvil desplegable */}
-      <nav
-        className={`flex flex-col items-stretch bg-gray-50 md:hidden text-base transition-all duration-300 ease-in-out ${
-          menuOpen ? "max-h-96 opacity-100 py-3 border-t border-gray-200" : "max-h-0 opacity-0 overflow-hidden"
-        }`}
-      >
-        <Link onClick={() => setMenuOpen(false)} to="/" className="py-2 px-6 hover:bg-gray-200">Inicio</Link>
-        <Link onClick={() => setMenuOpen(false)} to="/productos" className="py-2 px-6 hover:bg-gray-200">Productos</Link>
-        <Link onClick={() => setMenuOpen(false)} to="/contacto" className="py-2 px-6 hover:bg-gray-200">Contacto</Link>
-        
-        {isAdmin && <Link onClick={() => setMenuOpen(false)} to="/admin" className="py-2 px-6 text-indigo-600 hover:bg-gray-200 font-bold">Admin</Link>}
-        {!user && <Link onClick={() => setMenuOpen(false)} to="/login" className="py-2 px-6 text-indigo-600 hover:bg-gray-200">Iniciar Sesión</Link>}
-        {user && <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="text-left py-2 px-6 text-red-600 hover:bg-gray-200">Cerrar sesión</button>}
       </nav>
     </header>
   );

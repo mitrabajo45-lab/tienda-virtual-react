@@ -1,83 +1,46 @@
-import { Routes, Route, Link, useNavigate, useLocation } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Productos from "./pages/Productos";
 import Contacto from "./pages/Contacto";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Navbar from "./components/Navbar"; // Usamos el componente Navbar corregido
 import { useAuth } from "./context/AuthContext";
 
 export default function App() {
-  const { user, isAdmin, logout } = useAuth();
-  const navigate = useNavigate();
-  
-  // Ya no necesitamos useLocation si simplificamos el main
-  // const location = useLocation(); 
+  const { user, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
+  
+  return (
+    // Contenedor principal de la aplicación con flex-column para el sticky footer
+    <div className="d-flex flex-column min-vh-100 bg-light">
+      
+      {/* 1. Navbar con estilo y lógica */}
+      <Navbar /> 
 
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
+      {/* 2. Contenido principal: Centrado y con margen automático (max-width de Bootstrap) */}
+      <main className="container flex-grow-1 py-4">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/productos" element={<Productos />} />
+          <Route path="/contacto" element={<Contacto />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute user={user} isAdmin={isAdmin}>
+                <Admin />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/login" element={<Login />} />
+        </Routes>
+      </main>
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
-      {/* Header — SIEMPRE visible */}
-      <header className="bg-white shadow sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-lg font-semibold flex items-center gap-1">
-            🛍️ <span>Mi Almacén</span>
-          </h1>
-          <nav className="flex gap-4 text-sm">
-            <Link to="/" className="hover:underline">Inicio</Link>
-            <Link to="/productos" className="hover:underline">Productos</Link>
-            <Link to="/contacto" className="hover:underline">Contacto</Link>
-            {isAdmin && (
-              <Link to="/admin" className="hover:underline text-indigo-600">
-                Admin
-              </Link>
-            )}
-            {!user && (
-              <Link to="/login" className="hover:underline text-indigo-600">
-                Iniciar Sesión
-              </Link>
-            )}
-            {user && (
-              <button
-                onClick={handleLogout}
-                className="hover:underline text-red-500"
-              >
-                Cerrar sesión
-              </button>
-            )}
-          </nav>
-        </div>
-      </header>
-
-      {/* Contenido principal (SIMPLIFICADO) */}
-      <main 
-        // 🔑 CLAVE: Ahora solo aplicamos padding y flex-1, sin forzar un ancho completo.
-        className="flex-1 py-8"
-      >
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/productos" element={<Productos />} />
-          <Route path="/contacto" element={<Contacto />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute user={user} isAdmin={isAdmin}>
-                <Admin />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </main>
-
-      {/* Footer — SIEMPRE visible */}
-      <footer className="border-t text-center py-4 text-sm text-slate-500">
-        © {new Date().getFullYear()} Mi Almacén de Electrodomésticos
-      </footer>
-    </div>
-  );
+      {/* Footer */}
+      <footer className="border-top text-center py-3 text-muted">
+        &copy; {new Date().getFullYear()} Mi Almacén de Electrodomésticos
+      </footer>
+    </div>
+  );
 }

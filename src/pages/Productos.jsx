@@ -6,26 +6,21 @@ import { collection, onSnapshot, query, orderBy, deleteDoc, doc } from 'firebase
 export default function Productos() {
     
     // ======================================================================
-    // ESTADOS
+    // ESTADOS Y AUTENTICACIÓN (Tu lógica original que funciona)
     // ======================================================================
     const [esAdmin, setEsAdmin] = useState(false);
     const [productos, setProductos] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [error, setError] = useState(null);
 
-    // ======================================================================
-    // EFECTOS y LÓGICA DE CARGA/AUTENTICACIÓN
-    // ======================================================================
     useEffect(() => {
-        // Lógica de Autenticación
         const authInstance = getAuth();
         const unsubscribeAuth = onAuthStateChanged(authInstance, (user) => {
             setEsAdmin(!!user); 
         });
 
-        // Carga de datos de Firestore en tiempo real
         const productosRef = collection(db, 'productos');
-        const q = query(productosRef, orderBy('fechaCreacion', 'desc'));
+        const q = query(productosRef, orderBy('fechaCreacion', 'desc')); 
 
         const unsubscribeFirestore = onSnapshot(q, 
             (snapshot) => {
@@ -64,93 +59,119 @@ export default function Productos() {
 
         try {
             await deleteDoc(doc(db, "productos", id));
-            console.log(`Producto ${id} eliminado con éxito.`);
         } catch (err) {
             console.error("Error al eliminar el producto:", err);
             alert("Hubo un error al intentar eliminar el producto. Revisa los permisos.");
         }
     };
     
+    // Función de utilería para formatear el precio
+    const formatPrice = (price) => {
+        if (price === undefined || price === null) return '';
+        // Usamos Intl.NumberFormat para un formato de moneda más limpio
+        return new Intl.NumberFormat('es-CO', { 
+            style: 'currency', 
+            currency: 'COP', 
+            minimumFractionDigits: 0 
+        }).format(Number(price));
+    };
+
     // ======================================================================
-    // RENDERIZADO
+    // RENDERIZADO CONDICIONAL Y DISEÑO DE CUADRÍCULA
     // ======================================================================
     if (cargando) {
-        return <div className="p-10 text-center text-gray-500">Cargando productos...</div>;
+        return <div className="text-center py-5">Cargando catálogo... <span className="spinner-border spinner-border-sm"></span></div>;
     }
 
     if (error) {
-        return <div className="p-10 text-center text-red-600 font-bold">Error: {error}</div>;
+        return <div className="alert alert-danger text-center">{error}</div>;
     }
-
+    
     if (productos.length === 0) {
-        return <div className="p-10 text-center text-gray-500">Aún no hay productos cargados en la base de datos.</div>;
+        return <div className="alert alert-info text-center">¡El catálogo está vacío!</div>;
     }
     
     return (
-        <div className="min-h-screen bg-white p-6 md:p-10">
-            <h2 className="text-4xl font-extrabold mb-10 text-center text-gray-900 border-b pb-4">
+        <div className="py-3"> 
+            
+            <h2 className="text-center fw-bold mb-5 border-bottom pb-3">
                 🛒 Catálogo de Productos ({productos.length})
             </h2>
-            
-            <div className="container mx-auto grid gap-6 max-w-4xl"> 
-                {productos.map((producto) => (
-                    // CARD del Producto en formato HORIZONTAL
-                    <div 
-                        key={producto.id} 
-                        className="bg-white rounded-xl shadow-lg overflow-hidden flex border border-gray-200 hover:shadow-xl transition-shadow duration-300"
-                    >
-                        
-                        {/* 1. IMAGEN: Bloque Fijo y Centrado */}
-                        {producto.urlImagen && (
-                            <div 
-                                className="relative flex-shrink-0 p-4 flex justify-center items-center bg-gray-50 border-r border-gray-100" 
-                                style={{ width: '16rem', height: '16rem' }}
-                            > 
-                                <img 
-                                    src={producto.urlImagen} 
-                                    alt={producto.nombre} 
-                                    className="w-full h-full object-contain" 
+    
+            {/* CLAVE: Diseño de cuadrícula de Bootstrap (4 columnas en pantallas grandes) */}
+            <div className="row g-4">
+                {productos.map((p) => (
+                    // Columna: 12 en móvil, 6 en tablet (sm), 4 en md, 3 en desktop (lg/xl)
+                    <div key={p.id} className="col-12 col-sm-6 col-md-4 col-lg-3">
+                        <div className="card h-100 shadow-sm border-0 position-relative">
+                            
+                            {/* Etiqueta de Oferta (Simulada) */}
+                            {p.stock > 10 && ( 
+                                <span className="badge bg-dark position-absolute top-0 end-0 rounded-0 rounded-bottom-0">
+                                    ¡Oferta!
+                                </span>
+                            )}
+
+                            {/* Icono de Corazón/Favorito */}
+                            <button className="btn btn-light btn-sm position-absolute top-0 start-0 m-2 rounded-circle" style={{ zIndex: 10 }}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-heart" viewBox="0 0 16 16">
+                                  <path d="m8 2.748-.717-.737C5.6.281 2.387 1.155.49 3.197c-.246.25-.47.525-.674.832-.455.688-.847 1.543-1.096 2.513-.243.959-.356 1.954-.356 2.94v.34c0 1.045.183 2.052.54 2.978.36.953.844 1.834 1.442 2.607.618.795 1.341 1.537 2.148 2.22 1.833 1.54 4.545 2.152 7.152 2.152 2.607 0 5.319-.612 7.152-2.152.807-.683 1.53-1.425 2.148-2.22.598-.773 1.082-1.654 1.442-2.607.357-.926.54-1.933.54-2.978v-.34c0-.986-.113-1.981-.356-2.94-.249-.97-.641-1.825-1.096-2.513-.204-.307-.428-.582-.674-.832C13.613 1.155 10.398.281 8.717 2.011L8 2.748zM8.717 1.283c.725-.742 1.848-1.127 3.018-1.127 1.056 0 2.053.385 2.87.971.218.156.408.332.578.53.398.47.747 1.026.974 1.638.169.467.276.956.326 1.46.049.497.054.996.054 1.493v.34c0 .99-.11 1.962-.326 2.919-.227.612-.576 1.168-.974 1.638-.17.198-.36.374-.578.53-.817.586-1.814.971-2.87.971-1.17 0-2.293-.385-3.018-1.127L8 3.52 7.283 1.283z"/>
+                                </svg>
+                            </button>
+
+                            {/* IMAGEN del Producto */}
+                            <div className="p-4 d-flex justify-content-center align-items-center" style={{ height: '180px' }}>
+                                <img
+                                    src={p.urlImagen} 
+                                    alt={p.nombre}
+                                    className="img-fluid"
+                                    style={{ objectFit: 'contain', maxHeight: '100%' }}
                                 />
                             </div>
-                        )}
+                            
+                            {/* CUERPO de la Tarjeta */}
+                            <div className="card-body text-center d-flex flex-column flex-grow-1 border-top">
+                                
+                                {/* Categoría */}
+                                <p className="text-muted small mb-1">{p.categoria}</p>
 
-                        {/* 2. CONTENIDO: Bloque Flexible */}
-                        <div className="p-4 flex flex-col justify-between w-full">
-                            <div className="flex justify-between items-start mb-2">
-                                {/* Bloque de Nombre y Descripción */}
-                                <div className="w-full pr-4">
-                                    <h3 className="text-xl font-bold text-gray-900 line-clamp-2">
-                                        {producto.nombre}
-                                    </h3>
-                                    <span className="inline-block text-indigo-600 text-xs font-semibold mt-1">
-                                        {producto.categoria}
-                                    </span>
-                                    <p className="text-sm text-gray-600 mt-2 line-clamp-3">
-                                        {producto.descripcion}
-                                    </p>
-                                </div>
+                                {/* Nombre */}
+                                <h5 className="card-title fw-bold fs-6 mb-3 flex-grow-1">
+                                    {p.nombre}
+                                </h5>
 
-                                {/* Bloque de Precio y Stock (Derecha) */}
-                                <div className="flex flex-col items-end flex-shrink-0 pl-4">
-                                    <p className="text-2xl font-extrabold text-red-600">${producto.precio}</p>
-                                    <p className={`text-sm font-medium mt-1 ${producto.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        Stock: {producto.stock}
+                                {/* Precios */}
+                                <div className="mt-auto">
+                                    {/* Precio anterior (Simulado) */}
+                                    <p className="text-secondary small text-decoration-line-through mb-0">
+                                        {p.stock > 0 && formatPrice(Number(p.precio) * 1.3)}
                                     </p>
+                                    
+                                    {/* Precio de Oferta / Actual */}
+                                    <h4 className="fw-bolder text-dark">
+                                        {formatPrice(p.precio)}
+                                    </h4>
                                 </div>
                             </div>
 
-                            {/* Línea de Acción (Botón Admin) */}
-                            <div className="pt-2 border-t border-gray-100 mt-auto">
-                                {esAdmin && (
-                                    <div className="flex justify-start">
-                                        <button
-                                            onClick={() => handleDelete(producto.id, producto.nombre)}
-                                            className="bg-red-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-700 transition duration-150 shadow-md"
-                                            style={{ width: 'auto' }} 
-                                        >
-                                            Eliminar Producto
-                                        </button>
-                                    </div>
+                            {/* Botón de Acción */}
+                            <div className="card-footer bg-white border-0 p-3">
+                                {esAdmin ? (
+                                    // Botón de Admin (Eliminar)
+                                    <button
+                                        onClick={() => handleDelete(p.id, p.nombre)}
+                                        className="btn btn-danger w-100 fw-bold shadow-sm"
+                                    >
+                                        🗑️ Eliminar
+                                    </button>
+                                ) : (
+                                    // Botón de Cliente (Negro)
+                                    <button
+                                        disabled={p.stock <= 0}
+                                        className={`btn w-100 fw-bold shadow-sm ${p.stock > 0 ? 'btn-dark' : 'btn-secondary'}`}
+                                    >
+                                        {p.stock > 0 ? "Añadir al carrito" : "Agotado"}
+                                    </button>
                                 )}
                             </div>
                         </div>
