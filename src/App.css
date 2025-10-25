@@ -1,8 +1,8 @@
+/* App.css CORREGIDO */
+
+/* 🔑 CLAVE: ELIMINAMOS cualquier alineación o limitación global del #root */
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  /* text-align: center; 🛑 ELIMINADA. El centrado se hará con Flexbox en los componentes. */
 }
 
 .logo {

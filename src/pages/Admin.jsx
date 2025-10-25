@@ -6,7 +6,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 export default function Admin() {
     
     // ======================================================================
-    // ESTADOS (Manteniendo la inicialización funcional)
+    // ESTADOS
     // ======================================================================
     const [formData, setFormData] = useState({ 
         nombre: "", 
@@ -24,7 +24,7 @@ export default function Admin() {
     const productosRef = collection(db, "productos");
     
     // ======================================================================
-    // FUNCIONES DE UTILIDAD Y LÓGICA (Funcionalidad)
+    // FUNCIONES DE UTILIDAD Y LÓGICA
     // ======================================================================
     
     useEffect(() => {}, []);
@@ -103,6 +103,7 @@ export default function Admin() {
 
             mostrarMensaje("Producto agregado con éxito a Firestore.", "exito");
             
+            // Limpiar formulario y estados
             setFormData({ nombre: "", precio: "", categoria: "", stock: "", descripcion: "", urlImagen: "" });
             setImagenArchivo(null);
             setProgreso(0);
@@ -118,6 +119,7 @@ export default function Admin() {
     return (
         // Contenedor principal para centrar el contenido debajo del Navbar
         <div className="w-full max-w-4xl mx-auto p-4 md:p-8 bg-gray-50 min-h-screen"> 
+            
             {/* Mensaje de Notificación (Toast) */}
             {mensaje && (
                 <div
@@ -133,10 +135,10 @@ export default function Admin() {
 
             <form
                 onSubmit={handleSubmit}
-                // Limitar el ancho del formulario y centrarlo
-                className="mx-auto p-8 bg-white rounded-3xl shadow-xl grid gap-x-8 gap-y-6 md:grid-cols-2 max-w-lg" 
+                // 🔑 CLASE ACTUALIZADA: max-w-3xl y grid-cols-4 para mejor distribución
+                className="mx-auto p-8 bg-white rounded-xl shadow-2xl grid gap-x-8 gap-y-6 md:grid-cols-4 max-w-3xl" 
             >
-                {/* Nombre */}
+                {/* Nombre (columna 1) */}
                 <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700">Nombre</label>
                     <input
@@ -146,7 +148,7 @@ export default function Admin() {
                     />
                 </div>
 
-                {/* Precio */}
+                {/* Precio (columna 2) */}
                 <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700">Precio</label>
                     <input
@@ -156,7 +158,7 @@ export default function Admin() {
                     />
                 </div>
 
-                {/* Categoría */}
+                {/* Categoría (columna 3) */}
                 <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700">Categoría</label>
                     <input
@@ -166,7 +168,7 @@ export default function Admin() {
                     />
                 </div>
 
-                {/* Stock */}
+                {/* Stock (columna 4) */}
                 <div>
                     <label className="block text-sm font-medium mb-1 text-gray-700">Stock</label>
                     <input
@@ -176,8 +178,8 @@ export default function Admin() {
                     />
                 </div>
 
-                {/* DESCRIPCIÓN */}
-                <div className="md:col-span-2"> 
+                {/* DESCRIPCIÓN (Ocupa las 4 columnas) */}
+                <div className="md:col-span-4"> 
                     <label className="block text-sm font-medium mb-1 text-gray-700">Descripción</label>
                     <textarea
                         name="descripcion" value={formData.descripcion} onChange={handleChange}
@@ -186,8 +188,8 @@ export default function Admin() {
                     ></textarea>
                 </div>
 
-                {/* IMAGEN */}
-                <div className="md:col-span-2">
+                {/* IMAGEN (Ocupa las 4 columnas) */}
+                <div className="md:col-span-4">
                     <label className="block text-sm font-medium mb-1 text-gray-700">Imagen</label>
                     
                     <div className="flex items-center gap-3">
@@ -209,8 +211,8 @@ export default function Admin() {
                     )}
                 </div>
 
-                {/* Botón de Submit */}
-                <div className="md:col-span-2 flex justify-end pt-4"> 
+                {/* Botón de Submit (Ocupa las 4 columnas y centrado) */}
+                <div className="md:col-span-4 flex justify-center pt-4"> 
                     <button
                         type="submit"
                         className="bg-indigo-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-indigo-700 transition duration-150 shadow-md w-auto" 

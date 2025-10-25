@@ -12,63 +12,75 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  // Clases base para los enlaces (Link)
-  const linkClasses = "text-gray-700 hover:text-indigo-600 font-medium transition duration-200";
-  // Clases base para el botón Cerrar Sesión
-  const buttonClasses = "bg-red-600 text-white font-semibold px-4 py-1.5 rounded-lg shadow-md hover:bg-red-700 transition duration-200 focus:outline-none whitespace-nowrap";
+  // Clases para los botones azules (Inicio, Productos, Contacto, Admin, Login)
+  const primaryButtonClasses = "bg-indigo-500 text-white font-semibold px-3 py-1.5 rounded-lg shadow-md hover:bg-indigo-600 transition duration-200 whitespace-nowrap";
+  // Clases para el botón Cerrar Sesión (rojo)
+  const logoutButtonClasses = "bg-red-600 text-white font-semibold px-3 py-1.5 rounded-lg shadow-md hover:bg-red-700 transition duration-200 focus:outline-none whitespace-nowrap";
+
+  // 🚨 ESTILO IN-LINE TEMPORAL para anular bordes y márgenes de los separadores 🚨
+  const inlineResetStyle = { 
+    textDecoration: 'none', 
+    borderRight: 'none', 
+    marginRight: '0',
+    paddingRight: '0'
+  };
 
   return (
-    // Header con sombra y fondo claro
     <header className="bg-white shadow-lg sticky top-0 z-20">
-      {/* Contenedor principal para limitar el ancho del contenido */}
-      <div className="w-full max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+      
+      {/* ⚠️ CONTENEDOR PRINCIPAL: justify-center para centrar todo ⚠️ */}
+      <div className="w-full mx-auto px-4 py-3 flex items-center justify-center"> 
         
-        {/* 1. Logo/Título */}
-        <h1 className="text-xl font-extrabold text-gray-900 flex items-center">
-          <span className="text-indigo-600 mr-2">🛍️</span> Mi Almacén
-        </h1>
+        {/* Contenedor interno: max-w-4xl para limitar y centrar el grupo de elementos */}
+        <div className="flex items-center space-x-8 max-w-4xl w-full justify-center relative">
+          
+          {/* 1. Logo/Título - Posición absoluta para no interferir en el centrado del nav */}
+          <h1 className="text-xl font-extrabold text-gray-900 flex items-center absolute left-0">
+            <span className="text-indigo-600 mr-2">🛍️</span> Mi Almacén
+          </h1>
 
-        {/* 2. Menú para pantallas grandes (Desktop) */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm">
-          
-          {/* Enlaces de navegación principales */}
-          <Link to="/" className={linkClasses}>Inicio</Link>
-          <Link to="/productos" className={linkClasses}>Productos</Link>
-          <Link to="/contacto" className={linkClasses}>Contacto</Link>
-          
-          {/* Enlaces y botones condicionales (Alineados a la derecha y espaciados) */}
-          <div className="flex items-center space-x-4 ml-4 border-l pl-4">
+          {/* 2. Menú para pantallas grandes (Desktop) - Estará CENTRADO */}
+          <nav className="hidden md:flex items-center space-x-4 text-sm">
             
-            {/* Botón/Link Admin (Destacado) */}
-            {isAdmin && (
-              <Link to="/admin" className="text-indigo-600 hover:text-indigo-800 font-bold transition duration-200">
-                Admin
-              </Link>
-            )}
+            {/* GRUPO A: Enlaces de navegación principales (Aplicamos estilos in-line) */}
+            <Link to="/" className={primaryButtonClasses} style={inlineResetStyle}>Inicio</Link>
+            <Link to="/productos" className={primaryButtonClasses} style={inlineResetStyle}>Productos</Link>
+            <Link to="/contacto" className={primaryButtonClasses} style={inlineResetStyle}>Contacto</Link>
+            
+            {/* GRUPO B: Botones de acción (Condicionales) */}
+            <div className="flex items-center space-x-4 ml-4">
+              
+              {isAdmin && (
+                <Link to="/admin" className={primaryButtonClasses}>
+                  Admin
+                </Link>
+              )}
 
-            {/* Iniciar Sesión */}
-            {!user && (
-              <Link to="/login" className="bg-indigo-600 text-white font-semibold px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition duration-200">
-                Iniciar Sesión
-              </Link>
-            )}
+              {!user && (
+                <Link 
+                  to="/login" 
+                  className={primaryButtonClasses}
+                >
+                  Iniciar Sesión
+                </Link>
+              )}
 
-            {/* Botón Cerrar Sesión (Estilizado) */}
-            {user && (
-              <button 
-                onClick={handleLogout} 
-                className={buttonClasses} // Usa las clases rojas estilizadas
-              >
-                Cerrar sesión
-              </button>
-            )}
-          </div>
-        </nav>
+              {user && (
+                <button 
+                  onClick={handleLogout} 
+                  className={logoutButtonClasses} 
+                >
+                  Cerrar sesión
+                </button>
+              )}
+            </div>
+          </nav>
 
-        {/* Botón de menú móvil */}
-        <button className="md:hidden text-2xl p-1" onClick={() => setMenuOpen(!menuOpen)}>
-          ☰
-        </button>
+          {/* Botón de menú móvil (Movido a la derecha absoluta) */}
+          <button className="md:hidden text-2xl p-1 absolute right-0" onClick={() => setMenuOpen(!menuOpen)}>
+            ☰
+          </button>
+        </div>
       </div>
 
       {/* 3. Menú móvil desplegable */}
@@ -80,6 +92,7 @@ export default function Navbar() {
         <Link onClick={() => setMenuOpen(false)} to="/" className="py-2 px-6 hover:bg-gray-200">Inicio</Link>
         <Link onClick={() => setMenuOpen(false)} to="/productos" className="py-2 px-6 hover:bg-gray-200">Productos</Link>
         <Link onClick={() => setMenuOpen(false)} to="/contacto" className="py-2 px-6 hover:bg-gray-200">Contacto</Link>
+        
         {isAdmin && <Link onClick={() => setMenuOpen(false)} to="/admin" className="py-2 px-6 text-indigo-600 hover:bg-gray-200 font-bold">Admin</Link>}
         {!user && <Link onClick={() => setMenuOpen(false)} to="/login" className="py-2 px-6 text-indigo-600 hover:bg-gray-200">Iniciar Sesión</Link>}
         {user && <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="text-left py-2 px-6 text-red-600 hover:bg-gray-200">Cerrar sesión</button>}

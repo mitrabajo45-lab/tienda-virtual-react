@@ -1,45 +1,43 @@
+/* index.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Personalización opcional: define clases en lugar de usar @apply directamente */
+/* Personalización mínima */
 body {
-  background-color: #f9fafb; /* equivale a bg-gray-50 */
-  color: #1f2937; /* equivale a text-gray-800 */
+  background-color: #f9fafb; /* bg-gray-50 */
+  color: #1f2937; /* text-gray-800 */
   font-family: 'Inter', sans-serif;
 }
 
-/* 🔑 CLAVE DE LA CORRECCIÓN: Aplicamos max-width y box-sizing */
+/* 🚨 REINICIO CRÍTICO DE ESTILOS DE ENLACES (<a>) 🚨 */
+/* Esto elimina cualquier borde, subrayado o margen que podría crear los separadores (barras verticales). */
+a {
+    text-decoration: none !important; 
+    color: inherit; 
+    margin: 0;
+    padding: 0;
+    border: none;
+    /* Anulación extrema del contenido generado (si el separador es ::after) */
+    position: static !important;
+}
+
+/* Reinicio de formularios para que Tailwind controle el diseño */
 input,
-textarea, /* Añadimos textarea para consistencia */
+textarea,
 button {
-  border-radius: 0.375rem; /* rounded-md */
-  border: 1px solid #d1d5db; /* border-gray-300 */
-  padding: 0.5rem 0.75rem; /* px-3 py-2 */
-  outline: none;
-  
-  /* --- CAMBIOS CLAVE PARA EVITAR EL ESTIRAMIENTO --- */
-  /* Asegura que el padding no cause desbordamiento */
   box-sizing: border-box; 
-  /* Limita el ancho al 100% de su contenedor (el div de la columna) */
-  max-width: 100%; 
-  /* Si necesitas que siempre ocupen el espacio, usa width: 100%; junto con max-width */
-  width: 100%; 
+  outline: none;
+  width: auto !important; 
 }
 
 input:focus,
-button:focus {
-  box-shadow: 0 0 0 2px #3b82f6; /* focus:ring-2 focus:ring-blue-500 */
+textarea:focus {
+  box-shadow: 0 0 0 2px #3b82f6; 
+  border-color: #3b82f6; 
 }
 
 button {
-  background-color: #2563eb; /* bg-blue-600 */
-  color: white;
   transition: background-color 0.3s ease;
-  /* El botón no necesita width: 100%, así que podemos anularlo para él */
-  width: auto; 
-}
-
-button:hover {
-  background-color: #1d4ed8; /* hover:bg-blue-700 */
+  cursor: pointer;
 }
