@@ -1,3 +1,5 @@
+// App.jsx
+
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Home from "./pages/Home";
 import Productos from "./pages/Productos";
@@ -5,8 +7,10 @@ import Contacto from "./pages/Contacto";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Navbar from "./components/Navbar"; // Usamos el componente Navbar corregido
+import Navbar from "./components/Navbar"; 
 import { useAuth } from "./context/AuthContext";
+// ⬅️ NUEVA IMPORTACIÓN
+import ProductoDetalle from "./pages/ProductoDetalle"; 
 
 export default function App() {
   const { user, isAdmin, logout } = useAuth();
@@ -23,6 +27,10 @@ export default function App() {
       <main className="container flex-grow-1 py-4">
         <Routes>
           <Route path="/" element={<Home />} />
+          
+          {/* ⬇️ RUTA DINÁMICA DE DETALLE (Debe ir antes de la ruta /productos) */}
+          <Route path="/productos/:id" element={<ProductoDetalle />} /> 
+          
           <Route path="/productos" element={<Productos />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route

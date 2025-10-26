@@ -5,6 +5,7 @@ import { useState } from "react";
 export default function Navbar() {
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
+  // El estado 'menuOpen' controla el menú de Bootstrap en móviles
   const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -18,7 +19,7 @@ export default function Navbar() {
       <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
         <div className="container">
           
-          {/* 1. Logo/Título (Siempre visible) */}
+          {/* 1. Logo/Título */}
           <Link to="/" className="navbar-brand fw-bold fs-4 text-dark">
             <span className="text-primary me-2">🛍️</span> Mi Almacén
           </Link>
@@ -35,9 +36,12 @@ export default function Navbar() {
           </button>
 
           {/* 2. Contenido del menú */}
+          {/* Usar 'show' condicionalmente para Bootstrap en React */}
           <div className={`collapse navbar-collapse ${menuOpen ? 'show' : ''}`} id="navbarNav">
             
+            {/* 'ms-auto' para mover los enlaces a la derecha */}
             <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+              
               {/* GRUPO A: Enlaces de navegación principales */}
               <li className="nav-item">
                 <Link to="/" className="nav-link">Inicio</Link>
@@ -49,31 +53,39 @@ export default function Navbar() {
                 <Link to="/contacto" className="nav-link">Contacto</Link>
               </li>
               
-              {/* GRUPO B: Botones de acción (Condicionales) */}
-              {isAdmin && (
-                <li className="nav-item">
-                  <Link to="/admin" className="btn btn-primary btn-sm ms-lg-2 mt-2 mt-lg-0">
-                    Admin
-                  </Link>
-                </li>
-              )}
-
-              {!user && (
+              {/* ========================================================= */}
+              {/* GRUPO B: Botones de acción (Lógica Condicional Corregida) */}
+              {/* ========================================================= */}
+              
+              {user ? (
+                // ⬇️ OPCIÓN A: USUARIO LOGUEADO (Muestra Admin y Cerrar Sesión)
+                <>
+                  {/* Mostrar Admin solo si es administrador */}
+                  {isAdmin && (
+                    <li className="nav-item">
+                      {/* Cambié a btn-info para que no se confunda con 'Iniciar Sesión' */}
+                      <Link to="/admin" className="btn btn-info btn-sm ms-lg-2 mt-2 mt-lg-0 text-white">
+                        Admin
+                      </Link>
+                    </li>
+                  )}
+                  
+                  {/* Botón de Cerrar Sesión (Siempre que haya un usuario) */}
+                  <li className="nav-item">
+                    <button 
+                      onClick={handleLogout} 
+                      className="btn btn-danger btn-sm ms-lg-2 mt-2 mt-lg-0" 
+                    >
+                      Cerrar sesión
+                    </button>
+                  </li>
+                </>
+              ) : (
+                // ⬇️ OPCIÓN B: USUARIO NO LOGUEADO (Muestra Iniciar Sesión)
                 <li className="nav-item">
                   <Link to="/login" className="btn btn-primary btn-sm ms-lg-2 mt-2 mt-lg-0">
                     Iniciar Sesión
                   </Link>
-                </li>
-              )}
-
-              {user && (
-                <li className="nav-item">
-                  <button 
-                    onClick={handleLogout} 
-                    className="btn btn-danger btn-sm ms-lg-2 mt-2 mt-lg-0" 
-                  >
-                    Cerrar sesión
-                  </button>
                 </li>
               )}
             </ul>

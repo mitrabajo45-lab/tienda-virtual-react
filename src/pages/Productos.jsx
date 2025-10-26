@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import ProductoCard from "../components/ProductoCard"; // ✅ Ajuste de ruta (asumiendo src/pages y src/components)
+import ProductoCard from "../components/ProductoCard"; // ✅ Ajuste de ruta
+import { useNavigate } from 'react-router-dom'; 
 
-// IMPORTACIONES DE FIREBASE: DESCOMENTA ESTAS LÍNEAS y asegúrate de que la ruta a tu archivo 'firebase.js' sea correcta
+// IMPORTACIONES DE FIREBASE
 import { db } from '../firebase'; 
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore'; 
 
@@ -12,27 +13,42 @@ export default function Productos() {
     const [productos, setProductos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const navigate = useNavigate(); 
 
     // FUNCIÓN DE CARGA: Obtiene datos REALES de Firestore
     const fetchProductos = async () => {
         try {
-            // 1. Obtener la referencia a la colección
             const productosCollection = collection(db, "productos");
-            
-            // 2. Obtener los documentos
             const snapshot = await getDocs(productosCollection);
             
-            // 3. Mapear los documentos para incluir el ID
-            const data = snapshot.docs.map(doc => ({ 
-                id: doc.id, 
-                ...doc.data() 
-            }));
+            // ⬇️ LÓGICA CRÍTICA DE MIGRACIÓN DE IMÁGENES
+            const data = snapshot.docs.map(doc => {
+                const data = doc.data();
+                
+                // Determina la fuente de la URL
+                let imageArray;
+                if (data.imagenesUrls && Array.isArray(data.imagenesUrls)) {
+                    // 1. Usa la nueva estructura (Array)
+                    imageArray = data.imagenesUrls;
+                } else if (data.urlImagen) {
+                    // 2. Si tiene la estructura antigua (String), conviértela a Array
+                    imageArray = [data.urlImagen];
+                } else {
+                    // 3. Si no tiene nada, usa un array vacío
+                    imageArray = [];
+                }
+                
+                return { 
+                    id: doc.id, 
+                    ...data, 
+                    imagenesUrls: imageArray // Reemplaza la propiedad en el objeto devuelto
+                }; 
+            });
             
             return data;
             
         } catch (err) {
             console.error("Error al cargar productos:", err);
-            // Propaga un error más amigable para el usuario
             throw new Error("No se pudo conectar con la base de datos para cargar productos.");
         }
     };
@@ -44,19 +60,20 @@ export default function Productos() {
         }
 
         try {
-            // 1. Referencia al documento:
             const productoDoc = doc(db, "productos", id);
-            
-            // 2. Eliminar de Firebase
             await deleteDoc(productoDoc);
             
-            // 3. Actualizar el estado local (para que se quite de la UI inmediatamente)
             setProductos(prev => prev.filter(p => p.id !== id));
             console.log(`Producto con ID: ${id} eliminado con éxito de Firebase y UI.`);
         } catch (error) {
             console.error("Error al eliminar producto:", error);
             alert("Hubo un error al eliminar el producto de la base de datos.");
         }
+    };
+
+    // FUNCIÓN DE MODIFICACIÓN: Redirige al administrador a la página de edición
+    const modificarProducto = (id) => {
+        navigate(`/admin?productoId=${id}`); 
     };
 
     // EFECTO: Carga los datos al iniciar el componente
@@ -105,6 +122,7 @@ export default function Productos() {
                         key={producto.id} 
                         producto={producto} 
                         onEliminar={eliminarProducto} 
+                        onModificar={modificarProducto} 
                     />
                 ))}
 
