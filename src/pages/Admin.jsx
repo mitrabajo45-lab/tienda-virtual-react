@@ -6,7 +6,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 export default function Admin() {
     
     // ======================================================================
-    // ESTADOS
+    // ESTADOS (Sin cambios en la lógica)
     // ======================================================================
     const [formData, setFormData] = useState({ 
         nombre: "", 
@@ -24,7 +24,7 @@ export default function Admin() {
     const productosRef = collection(db, "productos");
     
     // ======================================================================
-    // FUNCIONES DE UTILIDAD Y LÓGICA
+    // FUNCIONES DE UTILIDAD Y LÓGICA (Sin cambios en la lógica)
     // ======================================================================
     
     useEffect(() => {}, []);
@@ -86,7 +86,7 @@ export default function Admin() {
         }
 
         if (!formData.nombre || !formData.precio || !formData.categoria || !formData.stock) {
-            mostrarMensaje("Por favor, completa todos los campos del formulario.", "error");
+            mostrarMensaje("Por favor, completa todos los campos requeridos.", "error");
             return;
         }
 
@@ -114,113 +114,161 @@ export default function Admin() {
     };
 
     // ======================================================================
-    // RENDERIZADO
+    // RENDERIZADO (Diseño con Bootstrap 5)
     // ======================================================================
     return (
-        // Contenedor principal para centrar el contenido debajo del Navbar
-        <div className="w-full max-w-4xl mx-auto p-4 md:p-8 bg-gray-50 min-h-screen"> 
+        // Contenedor principal con margen superior e inferior y centrado
+        <div className="container my-5"> 
             
-            {/* Mensaje de Notificación (Toast) */}
+            {/* Mensaje de Notificación (Toast flotante) */}
             {mensaje && (
-                <div
-                    className={`fixed top-6 right-6 px-5 py-3 rounded-lg text-white font-bold shadow-xl z-50 transition-opacity duration-300 ${
-                        tipoMensaje === "exito" ? "bg-green-600" : "bg-red-600"
-                    }`}
+                <div 
+                    className={`alert alert-${tipoMensaje === "exito" ? "success" : "danger"} 
+                                fixed-top end-0 m-4 shadow-lg`}
+                    style={{ zIndex: 1050 }} // Estilo para asegurar que esté encima de otros elementos
+                    role="alert"
                 >
                     {mensaje}
                 </div>
             )}
 
-            <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">Panel de Administración</h2>
+            <h2 className="mb-5 text-center text-primary fw-bold">Panel de Administración de Productos</h2>
 
-            <form
-                onSubmit={handleSubmit}
-                // 🔑 CLASE ACTUALIZADA: max-w-3xl y grid-cols-4 para mejor distribución
-                className="mx-auto p-8 bg-white rounded-xl shadow-2xl grid gap-x-8 gap-y-6 md:grid-cols-4 max-w-3xl" 
-            >
-                {/* Nombre (columna 1) */}
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700">Nombre</label>
-                    <input
-                        type="text" name="nombre" value={formData.nombre} onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 shadow-sm" 
-                        placeholder="Ej: Televisor LG 55”"
-                    />
-                </div>
+            <div className="row justify-content-center">
+                <div className="col-lg-10">
+                    <form onSubmit={handleSubmit}>
+                        
+                        {/* CARD 1: Información Principal */}
+                        <div className="card shadow-lg mb-4">
+                            <div className="card-header bg-light text-primary fw-bold">
+                                Información Básica del Producto
+                            </div>
+                            <div className="card-body">
+                                <div className="row g-3">
+                                    
+                                    {/* Nombre */}
+                                    <div className="col-md-6">
+                                        <label htmlFor="nombre" className="form-label fw-bold">Nombre</label>
+                                        <input
+                                            type="text" name="nombre" value={formData.nombre} onChange={handleChange}
+                                            className="form-control" 
+                                            id="nombre" placeholder="Ej: Televisor LG 55”" required
+                                        />
+                                    </div>
 
-                {/* Precio (columna 2) */}
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700">Precio</label>
-                    <input
-                        type="number" name="precio" value={formData.precio} onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 shadow-sm"
-                        placeholder="Ej: 1200"
-                    />
-                </div>
+                                    {/* Categoría */}
+                                    <div className="col-md-6">
+                                        <label htmlFor="categoria" className="form-label fw-bold">Categoría</label>
+                                        <input
+                                            type="text" name="categoria" value={formData.categoria} onChange={handleChange}
+                                            className="form-control"
+                                            id="categoria" placeholder="Ej: Audio/Video" required
+                                        />
+                                    </div>
 
-                {/* Categoría (columna 3) */}
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700">Categoría</label>
-                    <input
-                        type="text" name="categoria" value={formData.categoria} onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 shadow-sm"
-                        placeholder="Ej: Televisores"
-                    />
-                </div>
+                                    {/* Precio */}
+                                    <div className="col-md-6">
+                                        <label htmlFor="precio" className="form-label fw-bold">Precio ($)</label>
+                                        <input
+                                            type="number" name="precio" value={formData.precio} onChange={handleChange}
+                                            className="form-control"
+                                            id="precio" placeholder="Ej: 1200000" required
+                                        />
+                                    </div>
 
-                {/* Stock (columna 4) */}
-                <div>
-                    <label className="block text-sm font-medium mb-1 text-gray-700">Stock</label>
-                    <input
-                        type="number" name="stock" value={formData.stock} onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 shadow-sm"
-                        placeholder="Ej: 25"
-                    />
-                </div>
+                                    {/* Stock */}
+                                    <div className="col-md-6">
+                                        <label htmlFor="stock" className="form-label fw-bold">Stock</label>
+                                        <input
+                                            type="number" name="stock" value={formData.stock} onChange={handleChange}
+                                            className="form-control"
+                                            id="stock" placeholder="Ej: 25" required
+                                        />
+                                    </div>
 
-                {/* DESCRIPCIÓN (Ocupa las 4 columnas) */}
-                <div className="md:col-span-4"> 
-                    <label className="block text-sm font-medium mb-1 text-gray-700">Descripción</label>
-                    <textarea
-                        name="descripcion" value={formData.descripcion} onChange={handleChange}
-                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 shadow-sm resize-none"
-                        rows="3" placeholder="Describe el producto..."
-                    ></textarea>
-                </div>
+                                    {/* DESCRIPCIÓN (Ocupa todo el ancho) */}
+                                    <div className="col-12"> 
+                                        <label htmlFor="descripcion" className="form-label fw-bold">Descripción</label>
+                                        <textarea
+                                            name="descripcion" value={formData.descripcion} onChange={handleChange}
+                                            className="form-control"
+                                            id="descripcion" rows="3" placeholder="Detalles técnicos y características principales..."
+                                        ></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                {/* IMAGEN (Ocupa las 4 columnas) */}
-                <div className="md:col-span-4">
-                    <label className="block text-sm font-medium mb-1 text-gray-700">Imagen</label>
-                    
-                    <div className="flex items-center gap-3">
-                        <input
-                            type="file" accept="image/*" onChange={(e) => setImagenArchivo(e.target.files[0])}
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm text-gray-500 block file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 shadow-sm" 
-                        />
-                        <button
-                            type="button" onClick={handleUpload} disabled={subiendo || !imagenArchivo}
-                            className={`bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg w-auto flex-shrink-0 transition duration-150 shadow-md ${
-                                subiendo ? "opacity-60 cursor-not-allowed" : "hover:bg-blue-700"
-                            }`}
-                        >
-                            {subiendo ? `Subiendo... ${progreso}%` : "Subir Imagen"}
-                        </button>
-                    </div>
-                    {formData.urlImagen && (
-                        <p className="text-sm text-green-600 mt-2">✅ Imagen cargada y URL lista.</p>
-                    )}
-                </div>
+                        {/* CARD 2: Gestión de Imagen y Subida */}
+                        <div className="card shadow-lg mb-4">
+                            <div className="card-header bg-light text-primary fw-bold">
+                                Subida de Imagen
+                            </div>
+                            <div className="card-body">
+                                <div className="row align-items-center g-3">
+                                    <div className="col-md-8">
+                                        <label htmlFor="imagen" className="form-label fw-bold">Seleccionar Archivo</label>
+                                        <input
+                                            className="form-control" 
+                                            type="file" 
+                                            id="imagen" 
+                                            accept="image/*" 
+                                            onChange={(e) => setImagenArchivo(e.target.files[0])}
+                                        />
+                                        <div className="form-text">Sube una imagen JPG o PNG para el producto.</div>
+                                    </div>
+                                    
+                                    <div className="col-md-4 d-grid">
+                                        <button
+                                            type="button" onClick={handleUpload} disabled={subiendo || !imagenArchivo}
+                                            className={`btn btn-primary ${subiendo ? "disabled" : ""}`}
+                                        >
+                                            {subiendo ? `Subiendo... ${progreso}%` : "Subir Imagen"}
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Barra de Progreso */}
+                                    {subiendo && (
+                                        <div className="col-12 mt-3">
+                                            <div className="progress">
+                                                <div 
+                                                    className="progress-bar progress-bar-striped progress-bar-animated" 
+                                                    role="progressbar" 
+                                                    style={{ width: `${progreso}%` }} 
+                                                    aria-valuenow={progreso} 
+                                                    aria-valuemin="0" 
+                                                    aria-valuemax="100"
+                                                >
+                                                    {progreso}%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
-                {/* Botón de Submit (Ocupa las 4 columnas y centrado) */}
-                <div className="md:col-span-4 flex justify-center pt-4"> 
-                    <button
-                        type="submit"
-                        className="bg-indigo-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-indigo-700 transition duration-150 shadow-md w-auto" 
-                    >
-                        Agregar Producto
-                    </button>
+                                    {/* Feedback de URL lista */}
+                                    {formData.urlImagen && (
+                                        <div className="col-12">
+                                            <p className="text-success fw-bold mt-2">
+                                                ✅ Imagen cargada: URL lista para guardar.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Botón de Submit Final */}
+                        <div className="d-grid gap-2 col-md-6 mx-auto mt-5"> 
+                            <button
+                                type="submit"
+                                className="btn btn-success btn-lg shadow-sm" 
+                            >
+                                AGREGAR PRODUCTO
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     );
 }
