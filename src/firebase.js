@@ -1,17 +1,18 @@
-// firebase.jsx
+// firebase.jsx (MODIFICADO)
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBCTA4vMHpyIrYQKtYHqpGssWk8zrdTtEs",
-  authDomain: "mialmacendb.firebaseapp.com",
-  projectId: "mialmacendb",
-  storageBucket: "mialmacendb.firebasestorage.app",
-  messagingSenderId: "335290511607",
-  appId: "1:335290511607:web:9398cc0898f829d362a3f2",
-  measurementId: "G-E2YNQKW1X3",
+  // Las variables de entorno de Vite SIEMPRE comienzan con VITE_
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
 const app = initializeApp(firebaseConfig);
