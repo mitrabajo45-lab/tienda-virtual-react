@@ -1,0 +1,13 @@
+# Directorios generados
+/dist
+/node_modules
+
+# Archivos de entorno y claves SECRETAS
+.env
+
+# Archivos de configuración de IDEs
+.idea
+.vscode/
+
+# Archivos de logs y cache
+*.log
