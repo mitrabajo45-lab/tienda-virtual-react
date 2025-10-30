@@ -1,54 +1,43 @@
-// App.jsx
+// src/App.jsx (Contenido RESTAURADO)
 
-import { Routes, Route, useNavigate } from "react-router-dom";
-import Home from "./pages/Home";
-import Productos from "./pages/Productos";
-import Contacto from "./pages/Contacto";
-import Admin from "./pages/Admin";
-import Login from "./pages/Login";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Navbar from "./components/Navbar"; 
-import { useAuth } from "./context/AuthContext";
-// ⬅️ NUEVA IMPORTACIÓN
-import ProductoDetalle from "./pages/ProductoDetalle"; 
+import { Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar'; 
+// Importa todos tus componentes de página
+import Home from './pages/Home';
+import Productos from './pages/Productos';
+import Contacto from './pages/Contacto';
+import Login from './pages/Login';
+import Admin from './pages/Admin';
+import ProductoDetalle from './pages/ProductoDetalle';
+import ProtectedRoute from './components/ProtectedRoute'; // Para la ruta de admin
 
 export default function App() {
-  const { user, isAdmin, logout } = useAuth();
-  const navigate = useNavigate();
-  
   return (
-    // Contenedor principal de la aplicación con flex-column para el sticky footer
-    <div className="d-flex flex-column min-vh-100 bg-light">
-      
-      {/* 1. Navbar con estilo y lógica */}
+    <>
+      {/* El Navbar se renderiza en todas las páginas */}
       <Navbar /> 
 
-      {/* 2. Contenido principal: Centrado y con margen automático (max-width de Bootstrap) */}
-      <main className="container flex-grow-1 py-4">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          
-          {/* ⬇️ RUTA DINÁMICA DE DETALLE (Debe ir antes de la ruta /productos) */}
-          <Route path="/productos/:id" element={<ProductoDetalle />} /> 
-          
-          <Route path="/productos" element={<Productos />} />
-          <Route path="/contacto" element={<Contacto />} />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute user={user} isAdmin={isAdmin}>
-                <Admin />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/login" element={<Login />} />
-        </Routes>
-      </main>
+      <Routes>
+        {/* Rutas públicas */}
+        <Route path="/" element={<Home />} />
+        <Route path="/productos" element={<Productos />} />
+        <Route path="/productos/:id" element={<ProductoDetalle />} />
+        <Route path="/contacto" element={<Contacto />} />
+        <Route path="/login" element={<Login />} />
 
-      {/* Footer */}
-      <footer className="border-top text-center py-3 text-muted">
-        &copy; {new Date().getFullYear()} Mi Almacén de Electrodomésticos
-      </footer>
-    </div>
+        {/* Ruta protegida para administradores */}
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <Admin />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta de error 404 (Opcional) */}
+        <Route path="*" element={<p className="text-center my-5">404: Página no encontrada</p>} />
+      </Routes>
+    </>
   );
 }
