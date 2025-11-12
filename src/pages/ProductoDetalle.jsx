@@ -108,20 +108,19 @@ export default function ProductoDetalle() {
         <div className="container my-5">
             
             {/* ⬅️ CONTENEDOR PRINCIPAL: GALERÍA E INFORMACIÓN (COLUMNAS) */}
-            <div className="row mb-5 pb-5 border-bottom"> {/* Añadido margen y borde para separar */}
+            <div className="row mb-5 pb-5 border-bottom">
                 
-                {/* ⬅️ Columna IZQUIERDA: Galería (Carrusel Vertical y Vista Principal) */}
-                <div className="col-md-6 d-flex"> 
+                {/* ⬅️ Columna IZQUIERDA: Galería (AHORA 7/12) */}
+                <div className="col-md-7 d-flex"> 
                     
                     {/* 1. Carrusel Vertical de Miniaturas (Nueva Columna) */}
                     {producto.imagenesUrls.length > 1 && (
-                        // ⬅️ CRÍTICO: Ancho fijo para el contenedor y margen derecho ajustado
                         <div 
                             className="d-flex flex-column gap-2 me-3" 
                             style={{ 
-                                maxHeight: '28rem', 
+                                maxHeight: '32rem', // ⬅️ Altura aumentada para el contenedor principal
                                 overflowY: 'scroll',
-                                minWidth: '95px', // ⬅️ Nuevo: ANCHO FIJO para miniaturas (80px + padding + border + scrollbar)
+                                minWidth: '95px', // ⬅️ Ancho fijo para estabilidad
                                 boxSizing: 'content-box'
                             }}
                         >
@@ -137,7 +136,7 @@ export default function ProductoDetalle() {
                                         objectFit: 'cover', 
                                         cursor: 'pointer',
                                         transition: 'border-color 0.2s',
-                                        flexShrink: 0, // ⬅️ Asegura que la imagen no se encoja
+                                        flexShrink: 0,
                                     }}
                                     onClick={() => { setMainImage(url); setIsZoomed(false); }} 
                                 />
@@ -148,7 +147,7 @@ export default function ProductoDetalle() {
                     {/* 2. Imagen Principal Grande (Contenedor Estático y LUPA) */}
                     <div 
                         className="card shadow-lg p-3 flex-grow-1"
-                        style={{ height: '28rem', overflow: 'hidden' }} 
+                        style={{ height: '32rem', overflow: 'hidden' }} // ⬅️ Altura aumentada para el contenedor principal
                         onMouseEnter={() => setIsZoomed(true)} 
                         onMouseLeave={() => setIsZoomed(false)} 
                         onMouseMove={handleMouseMove} 
@@ -168,8 +167,8 @@ export default function ProductoDetalle() {
                     </div>
                 </div>
                 
-                {/* ⬅️ Columna DERECHA: Información Clave y Contacto */}
-                <div className="col-md-6">
+                {/* ⬅️ Columna DERECHA: Información Clave y Contacto (AHORA 5/12) */}
+                <div className="col-md-5">
                     <h1 className="display-5 fw-bold text-dark">{producto.nombre}</h1>
                     <p className="text-muted small mb-4">
                         <span className="fw-bold text-dark">Marca:</span> {producto.marca} | 
@@ -190,7 +189,7 @@ export default function ProductoDetalle() {
                 </div>
             </div>
 
-            {/* ⬇️ NUEVA SECCIÓN: DESCRIPCIÓN (FUERA DEL ROW, ANCHO COMPLETO) ⬇️ */}
+            {/* ⬇️ SECCIÓN: DESCRIPCIÓN (ANCHO COMPLETO) ⬇️ */}
             <div className="row mt-5">
                 <div className="col-12">
                     <div className="card shadow-sm p-4">
