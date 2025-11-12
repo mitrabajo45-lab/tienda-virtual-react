@@ -1,14 +1,16 @@
+//Adamin.jsx
 import React, { useState, useEffect } from "react";
-// Importaciones de Firebase para CREAR y MODIFICAR
-import { db, storage } from "../firebase";
+// 🚨 REVISA ESTA RUTA: Debe apuntar correctamente a tu archivo firebase.jsx
+import { db, storage } from "../firebase"; 
 import { collection, addDoc, doc, getDoc, updateDoc } from "firebase/firestore"; 
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-// Importaciones de Router para leer la URL y navegar
 import { useSearchParams, useNavigate } from "react-router-dom"; 
 
 // ======================================================================
-// DEFINICIÓN DE CATEGORÍAS FIJAS
+// CONSTANTES
 // ======================================================================
+const MAX_IMAGES = 10; // Límite de imágenes actualizado a 10
+
 const CATEGORIAS_PRODUCTOS = [
     { label: "Audio", value: "Audio" },
     { label: "Televisores (TV)", value: "TV" },
@@ -37,15 +39,11 @@ const CATEGORIAS_PRODUCTOS = [
 export default function Admin() {
     
     // ======================================================================
-    // ESTADOS (ACTUALIZADO: 'urlImagen' reemplazado por 'imagenesUrls' ARRAY)
+    // ESTADOS 
     // ======================================================================
     const [formData, setFormData] = useState({ 
-        nombre: "", 
-        categoria: "", 
-        codigo: "",        
-        descripcion: "", 
-        marca: "",         
-        imagenesUrls: []   // ⬅️ ARRAY para URLs
+        nombre: "", categoria: "", codigo: "", descripcion: "", 
+        marca: "", imagenesUrls: []   
     });
     const [mensaje, setMensaje] = useState(null);
     const [tipoMensaje, setTipoMensaje] = useState("");
@@ -64,8 +62,6 @@ export default function Admin() {
     // ======================================================================
     // FUNCIONES DE UTILIDAD Y LÓGICA
     // ======================================================================
-    
-    useEffect(() => {}, []);
 
     const mostrarMensaje = (msg, tipo) => {
         setMensaje(msg);
@@ -80,7 +76,6 @@ export default function Admin() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    // FUNCIÓN PARA ELIMINAR UNA IMAGEN DEL ARRAY DE VISTA PREVIA
     const handleRemoveImage = (indexToRemove) => {
         const newUrls = formData.imagenesUrls.filter((_, index) => index !== indexToRemove);
         setFormData(prev => ({ 
@@ -90,16 +85,15 @@ export default function Admin() {
         mostrarMensaje(`Imagen ${indexToRemove + 1} eliminada de la galería local.`, "info");
     };
 
-
-    // FUNCIÓN handleUpload (ACTUALIZADO: Agrega la URL a un array)
     const handleUpload = () => {
         if (!imagenArchivo) {
             mostrarMensaje("Selecciona un archivo de imagen primero.", "error");
             return;
         }
         
-        if (formData.imagenesUrls.length >= 5) {
-            mostrarMensaje("Máximo 5 imágenes permitidas en la galería.", "error");
+        // VALIDACIÓN DE LÍMITE (MAX_IMAGES = 10)
+        if (formData.imagenesUrls.length >= MAX_IMAGES) {
+            mostrarMensaje(`Máximo ${MAX_IMAGES} imágenes permitidas en la galería.`, "error");
             return;
         }
 
@@ -123,12 +117,10 @@ export default function Admin() {
             () => {
                 setSubiendo(false);
                 getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-                    // AÑADIR LA NUEVA URL AL ARRAY EXISTENTE
                     setFormData(prev => ({ 
                         ...prev, 
                         imagenesUrls: [...prev.imagenesUrls, downloadURL] 
                     }));
-                    // Limpiar el archivo seleccionado para permitir otra subida
                     setImagenArchivo(null); 
                     mostrarMensaje(`Imagen ${formData.imagenesUrls.length + 1} subida con éxito.`, "exito");
                 });
@@ -137,23 +129,25 @@ export default function Admin() {
     };
 
     // ======================================================================
-    // EFECTO DE CARGA PARA EDICIÓN
+    // EFECTO DE CARGA PARA EDICIÓN (LÓGICA DE FIREBASE RESTAURADA)
     // ======================================================================
     useEffect(() => {
+        // Esta función solo se ejecuta si hay un productoId en la URL
         if (productoId) {
             setIsEditing(true);
             const fetchProducto = async () => {
                 try {
+                    // 🚨 Conexión a Firestore usando 'db' 🚨
                     const docRef = doc(db, "productos", productoId);
                     const docSnap = await getDoc(docRef);
 
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         
-                        // Cargar datos en el formulario: Inicializa imagenesUrls como array
+                        // Cargar datos en el formulario
                         const loadedData = { 
                             ...data,
-                            imagenesUrls: data.imagenesUrls || [], // ⬅️ Carga el array de URLs
+                            imagenesUrls: data.imagenesUrls || [], 
                             codigo: data.codigo || "",
                             marca: data.marca || "",
                         };
@@ -164,27 +158,28 @@ export default function Admin() {
                         navigate("/admin", { replace: true });
                     }
                 } catch (error) {
-                    mostrarMensaje("Error al cargar datos de edición.", "error");
+                    // Muestra el error de conexión en la consola para depuración
+                    console.error("Error al cargar datos de edición desde Firestore:", error);
+                    mostrarMensaje("Error al cargar datos de edición. Revisar conexión a DB.", "error");
                     navigate("/admin", { replace: true });
                 }
             };
             fetchProducto();
         } else {
-            // Modo Creación
+            // Modo Creación: Limpia el estado
             setIsEditing(false);
-            // Limpia el estado inicial correctamente
             setFormData({ nombre: "", categoria: "", codigo: "", descripcion: "", marca: "", imagenesUrls: [] });
         }
-    }, [productoId, navigate]);
+    }, [productoId, navigate]); 
 
     // ======================================================================
-    // FUNCIÓN handleSubmit (UNIFICADA)
+    // FUNCIÓN handleSubmit (CREACIÓN Y MODIFICACIÓN)
     // ======================================================================
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         // 1. Validaciones
-        if (formData.imagenesUrls.length === 0) { // ⬅️ Validación de ARRAY
+        if (formData.imagenesUrls.length === 0) {
             mostrarMensaje("Debes subir al menos una imagen a la galería.", "error");
             return;
         }
@@ -193,14 +188,13 @@ export default function Admin() {
             return;
         }
 
-        // Objeto de datos a guardar (Incluye el array de URLs y NO el precio)
         const dataToSave = {
             nombre: formData.nombre,
             categoria: formData.categoria,
             codigo: formData.codigo,
             descripcion: formData.descripcion,
             marca: formData.marca,
-            imagenesUrls: formData.imagenesUrls, // ⬅️ Guardando el array completo
+            imagenesUrls: formData.imagenesUrls,
         };
 
         try {
@@ -218,7 +212,7 @@ export default function Admin() {
                 mostrarMensaje("Producto AGREGADO con éxito.", "exito");
             }
             
-            // Limpiar formulario y salir del modo edición después de la operación
+            // Limpiar formulario y navegar si estábamos editando
             setFormData({ nombre: "", categoria: "", codigo: "", descripcion: "", marca: "", imagenesUrls: [] });
             setImagenArchivo(null);
             setProgreso(0);
@@ -244,7 +238,7 @@ export default function Admin() {
             {mensaje && (
                 <div 
                     className={`alert alert-${tipoMensaje === "exito" ? "success" : "danger"} 
-                                fixed-top end-0 m-4 shadow-lg`}
+                                 fixed-top end-0 m-4 shadow-lg`}
                     style={{ zIndex: 1050 }} 
                     role="alert"
                 >
@@ -289,7 +283,6 @@ export default function Admin() {
                                         />
                                     </div>
 
-
                                     {/* CATEGORÍA (CAMPO DESPLEGABLE) */}
                                     <div className="col-md-6">
                                         <label htmlFor="categoria" className="form-label fw-bold">CATEGORÍA</label>
@@ -304,7 +297,6 @@ export default function Admin() {
                                             <option value="" disabled>Seleccionar Categoría...</option>
                                             {CATEGORIAS_PRODUCTOS.map((cat, index) => (
                                                 cat.options ? (
-                                                    // Es un grupo de opciones (optgroup)
                                                     <optgroup key={index} label={cat.label}>
                                                         {cat.options.map((opt) => (
                                                             <option key={opt.value} value={opt.value}>
@@ -313,7 +305,6 @@ export default function Admin() {
                                                         ))}
                                                     </optgroup>
                                                 ) : (
-                                                    // Es una opción simple
                                                     <option key={cat.value} value={cat.value}>
                                                         {cat.label}
                                                     </option>
@@ -361,15 +352,15 @@ export default function Admin() {
                                             id="imagen" 
                                             accept="image/*" 
                                             onChange={(e) => setImagenArchivo(e.target.files[0])}
-                                            disabled={subiendo || formData.imagenesUrls.length >= 5}
+                                            disabled={subiendo || formData.imagenesUrls.length >= MAX_IMAGES} 
                                         />
-                                        <div className="form-text">Máximo 5 imágenes.</div>
+                                        <div className="form-text">Máximo {MAX_IMAGES} imágenes.</div>
                                     </div>
                                     
                                     <div className="col-md-4 d-grid">
                                         <button
                                             type="button" onClick={handleUpload} 
-                                            disabled={subiendo || !imagenArchivo || formData.imagenesUrls.length >= 5}
+                                            disabled={subiendo || !imagenArchivo || formData.imagenesUrls.length >= MAX_IMAGES}
                                             className={`btn btn-primary ${subiendo ? "disabled" : ""}`}
                                         >
                                             {subiendo ? `Subiendo... ${progreso}%` : "Añadir Imagen a Galería"}
