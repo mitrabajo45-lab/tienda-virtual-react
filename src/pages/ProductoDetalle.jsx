@@ -19,6 +19,7 @@ export default function ProductoDetalle() {
 
     // Número de WhatsApp (ejemplo)
     const WHATSAPP_NUMBER = "573001234567";
+    const isMobile = window.innerWidth < 768; // Helper para estilos condicionales
 
     // 2. Cargar datos del producto
     useEffect(() => {
@@ -36,7 +37,6 @@ export default function ProductoDetalle() {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
-                    // Manejo flexible de las URLs de imágenes
                     const images = data.imagenesUrls || (data.urlImagen ? [data.urlImagen] : []);
                     data.imagenesUrls = images; 
                     
@@ -67,14 +67,10 @@ export default function ProductoDetalle() {
     const handleMouseMove = (e) => {
         if (!isZoomed) return;
 
-        // Obtiene las dimensiones del contenedor
         const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
-        
-        // Calcula la posición relativa del cursor dentro del contenedor (0 a 1)
         const x = (e.clientX - left) / width;
         const y = (e.clientY - top) / height;
 
-        // Establece la posición del cursor (usado para el transform-origin)
         setCursorPosition({ x, y });
     };
 
@@ -117,7 +113,7 @@ export default function ProductoDetalle() {
     if (!producto) return null;
 
     // Estilos dinámicos para el efecto de lupa
-    const zoomStyle = isZoomed ? {
+    const zoomStyle = (isZoomed && !isMobile) ? { // Aplicar zoom solo si no es móvil
         transform: 'scale(2)', 
         transformOrigin: `${cursorPosition.x * 100}% ${cursorPosition.y * 100}%`,
         transition: 'none', 
@@ -135,38 +131,30 @@ export default function ProductoDetalle() {
         <div className="container my-5">
             
             {/* ⬅️ CONTENEDOR PRINCIPAL: GALERÍA E INFORMACIÓN (COLUMNAS) */}
-            {/* d-flex flex-row: Miniaturas y la imagen grande siempre se mantienen lado a lado (en fila) */}
             <div className="row mb-5 pb-5 border-bottom">
                 
-                {/* ⬅️ Columna IZQUIERDA: Galería */}
-                <div className="col-md-7 d-flex flex-row"> 
+                {/* ⬅️ Columna IZQUIERDA: Galería (IMAGEN + MINIATURAS) */}
+                {/* d-flex flex-column: Móvil (miniaturas encima de imagen). 
+                   flex-md-row: Escritorio (miniaturas a la izquierda de imagen). */}
+                <div className="col-md-7 d-flex flex-column flex-md-row"> 
                     
-                    {/* 1. Carrusel de Miniaturas (Móvil horizontal, Escritorio vertical) */}
+                    {/* 1. Carrusel de Miniaturas */}
                     {producto.imagenesUrls.length > 1 && (
                         <div 
-                            // 🔑 CLASES CORREGIDAS: 
-                            // d-flex flex-row: Comportamiento por defecto (Móvil) es horizontal
-                            // d-md-flex flex-md-column: En escritorio (md y superior) se vuelve vertical
-                            className="d-flex flex-row d-md-flex flex-md-column gap-2 mb-3 mb-md-0 me-md-3 p-1" 
+                            // d-flex flex-row: Móvil (horizontal). 
+                            // flex-md-column: Escritorio (vertical).
+                            className="d-flex flex-row flex-md-column gap-2 mb-3 mb-md-0 me-md-3 p-1" 
                             style={{ 
-                                // Estilos para Escritorio (vertical scroll)
-                                maxHeight: '32rem', 
-                                minWidth: '95px', 
+                                // Estilos de Escritorio (Scroll vertical)
+                                maxHeight: isMobile ? 'auto' : '32rem', 
+                                minWidth: isMobile ? 'auto' : '95px', 
                                 boxSizing: 'content-box',
-                                
-                                // Estilos que controlan el scroll:
-                                // Ocultamos el scroll horizontal por defecto (escritorio)
-                                overflowX: 'hidden', 
-                                whiteSpace: 'normal',
-                                
-                                // Sobrescribimos en móvil (scroll horizontal):
-                                '@media (max-width: 767px)': {
-                                    overflowX: 'scroll',
-                                    overflowY: 'hidden',
-                                    whiteSpace: 'nowrap',
-                                    maxHeight: 'auto',
-                                    paddingBottom: '10px' // Espacio para la barra de scroll horizontal
-                                }
+                                overflowY: isMobile ? 'hidden' : 'scroll', 
+
+                                // Estilos de Móvil (Scroll horizontal)
+                                overflowX: isMobile ? 'scroll' : 'hidden', 
+                                whiteSpace: isMobile ? 'nowrap' : 'normal',
+                                paddingBottom: isMobile ? '10px' : '0' 
                             }}
                         >
                             {producto.imagenesUrls.map((url, index) => (
@@ -181,9 +169,7 @@ export default function ProductoDetalle() {
                                         objectFit: 'cover', 
                                         cursor: 'pointer',
                                         transition: 'border-color 0.2s',
-                                        flexShrink: 0, // Importante para que no se compriman horizontalmente
-                                        marginRight: index < producto.imagenesUrls.length - 1 && window.innerWidth < 768 ? '10px' : '0',
-                                        marginBottom: index < producto.imagenesUrls.length - 1 && window.innerWidth >= 768 ? '10px' : '0'
+                                        flexShrink: 0,
                                     }}
                                     onClick={() => { setMainImage(url); setIsZoomed(false); }} 
                                 />
@@ -191,10 +177,10 @@ export default function ProductoDetalle() {
                         </div>
                     )}
 
-                    {/* 2. Imagen Principal Grande (Contenedor Estático y LUPA) */}
+                    {/* 2. Imagen Principal Grande */}
                     <div 
                         className="card shadow-lg p-3 flex-grow-1"
-                        style={{ height: '32rem', overflow: 'hidden' }} 
+                        style={{ height: isMobile ? 'auto' : '32rem', overflow: 'hidden' }} 
                         onMouseEnter={() => setIsZoomed(true)} 
                         onMouseLeave={() => setIsZoomed(false)} 
                         onMouseMove={handleMouseMove} 
@@ -208,7 +194,7 @@ export default function ProductoDetalle() {
                                 ...zoomStyle,
                                 maxHeight: isZoomed ? 'none' : '100%', 
                                 width: '100%', 
-                                cursor: isZoomed ? 'zoom-out' : 'zoom-in', 
+                                cursor: (isZoomed && !isMobile) ? 'zoom-out' : 'zoom-in', 
                             }}
                         />
                     </div>
