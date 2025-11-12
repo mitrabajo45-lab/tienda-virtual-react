@@ -1,8 +1,7 @@
 // src/pages/ProductoDetalle.jsx
-
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { db } from '../firebase'; // ⬅️ Asegúrate de que esta ruta sea correcta
+import { db } from '../firebase'; 
 import { doc, getDoc } from 'firebase/firestore';
 
 export default function ProductoDetalle() {
@@ -13,8 +12,10 @@ export default function ProductoDetalle() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [mainImage, setMainImage] = useState(''); 
+    const [isZoomed, setIsZoomed] = useState(false); 
+    const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 }); 
 
-    // Número de WhatsApp
+    // Número de WhatsApp (ejemplo)
     const WHATSAPP_NUMBER = "573001234567";
 
     // 2. Cargar datos del producto
@@ -33,12 +34,10 @@ export default function ProductoDetalle() {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
-                    // Lógica para manejar la migración de datos (urlImagen a imagenesUrls)
                     const images = data.imagenesUrls || (data.urlImagen ? [data.urlImagen] : []);
                     data.imagenesUrls = images; 
                     
                     setProducto(data);
-                    // Establecer la primera imagen como la principal al cargar
                     setMainImage(images.length > 0 ? images[0] : 'https://via.placeholder.com/600x400/AAAAAA/FFFFFF?text=Imagen+No+Disponible'); 
                 } else {
                     setError("Producto no encontrado.");
@@ -61,6 +60,21 @@ export default function ProductoDetalle() {
         window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
     };
 
+    // ⬅️ FUNCIÓN: Calcula la posición del cursor y el desplazamiento para el zoom
+    const handleMouseMove = (e) => {
+        if (!isZoomed) return;
+
+        // Obtiene las dimensiones del contenedor
+        const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+        
+        // Calcula la posición relativa del cursor dentro del contenedor (0 a 1)
+        const x = (e.clientX - left) / width;
+        const y = (e.clientY - top) / height;
+
+        // Establece la posición del cursor (usado para el transform-origin)
+        setCursorPosition({ x, y });
+    };
+
     // 3. Renderizado de carga y error
     if (loading) {
         return <div className="container my-5 text-center text-primary fs-5">Cargando detalles del producto...</div>;
@@ -72,43 +86,89 @@ export default function ProductoDetalle() {
 
     if (!producto) return null;
 
+    // Estilos dinámicos para el efecto de lupa
+    const zoomStyle = isZoomed ? {
+        // Aumenta la escala (200% de zoom)
+        transform: 'scale(2)', 
+        // Hace que el punto de origen de la transformación siga al cursor
+        transformOrigin: `${cursorPosition.x * 100}% ${cursorPosition.y * 100}%`,
+        // Quita la transición cuando está activo para que el movimiento sea instantáneo
+        transition: 'none', 
+        objectFit: 'cover' // Asegura que cubra el área cuando está ampliada
+    } : {
+        transform: 'scale(1)',
+        transformOrigin: 'center center',
+        transition: 'transform 0.3s ease-in-out',
+        objectFit: 'contain'
+    };
+
+
     // 4. Renderizado Final (Diseño con Bootstrap)
     return (
         <div className="container my-5">
-            <div className="row">
+            
+            {/* ⬅️ CONTENEDOR PRINCIPAL: GALERÍA E INFORMACIÓN (COLUMNAS) */}
+            <div className="row mb-5 pb-5 border-bottom"> {/* Añadido margen y borde para separar */}
                 
-                {/* Columna de Galería (Imágenes) */}
-                <div className="col-md-6">
-                    <div className="card shadow-sm p-3 mb-4">
-                        {/* Imagen Principal Grande */}
+                {/* ⬅️ Columna IZQUIERDA: Galería (Carrusel Vertical y Vista Principal) */}
+                <div className="col-md-6 d-flex"> 
+                    
+                    {/* 1. Carrusel Vertical de Miniaturas (Nueva Columna) */}
+                    {producto.imagenesUrls.length > 1 && (
+                        // ⬅️ CRÍTICO: Ancho fijo para el contenedor y margen derecho ajustado
+                        <div 
+                            className="d-flex flex-column gap-2 me-3" 
+                            style={{ 
+                                maxHeight: '28rem', 
+                                overflowY: 'scroll',
+                                minWidth: '95px', // ⬅️ Nuevo: ANCHO FIJO para miniaturas (80px + padding + border + scrollbar)
+                                boxSizing: 'content-box'
+                            }}
+                        >
+                            {producto.imagenesUrls.map((url, index) => (
+                                <img 
+                                    key={index} 
+                                    src={url} 
+                                    alt={`Miniatura ${index + 1}`} 
+                                    className={`img-thumbnail p-0 ${url === mainImage ? 'border-primary border-3' : 'border-secondary'}`}
+                                    style={{ 
+                                        width: '80px', 
+                                        height: '80px', 
+                                        objectFit: 'cover', 
+                                        cursor: 'pointer',
+                                        transition: 'border-color 0.2s',
+                                        flexShrink: 0, // ⬅️ Asegura que la imagen no se encoja
+                                    }}
+                                    onClick={() => { setMainImage(url); setIsZoomed(false); }} 
+                                />
+                            ))}
+                        </div>
+                    )}
+
+                    {/* 2. Imagen Principal Grande (Contenedor Estático y LUPA) */}
+                    <div 
+                        className="card shadow-lg p-3 flex-grow-1"
+                        style={{ height: '28rem', overflow: 'hidden' }} 
+                        onMouseEnter={() => setIsZoomed(true)} 
+                        onMouseLeave={() => setIsZoomed(false)} 
+                        onMouseMove={handleMouseMove} 
+                    >
+                        {/* Aplicamos los estilos dinámicos de zoom */}
                         <img 
                             src={mainImage} 
                             alt={producto.nombre} 
-                            className="img-fluid rounded mb-3"
-                            style={{ maxHeight: '450px', objectFit: 'contain', width: '100%' }}
+                            className="img-fluid rounded"
+                            style={{ 
+                                ...zoomStyle,
+                                maxHeight: isZoomed ? 'none' : '100%', 
+                                width: '100%', 
+                                cursor: isZoomed ? 'zoom-out' : 'zoom-in', 
+                            }}
                         />
-                        
-                        {/* Galería de Miniaturas */}
-                        <div className="d-flex flex-wrap gap-2 justify-content-center">
-                            {producto.imagenesUrls.length > 0 ? (
-                                producto.imagenesUrls.map((url, index) => (
-                                    <img 
-                                        key={index} 
-                                        src={url} 
-                                        alt={`Miniatura ${index + 1}`} 
-                                        className={`img-thumbnail ${url === mainImage ? 'border-primary border-3' : ''}`}
-                                        style={{ width: '80px', height: '80px', objectFit: 'cover', cursor: 'pointer' }}
-                                        onClick={() => setMainImage(url)} // Cambiar imagen principal al hacer clic
-                                    />
-                                ))
-                            ) : (
-                                <p className="text-muted">No hay miniaturas disponibles.</p>
-                            )}
-                        </div>
                     </div>
                 </div>
                 
-                {/* Columna de Información */}
+                {/* ⬅️ Columna DERECHA: Información Clave y Contacto */}
                 <div className="col-md-6">
                     <h1 className="display-5 fw-bold text-dark">{producto.nombre}</h1>
                     <p className="text-muted small mb-4">
@@ -116,15 +176,12 @@ export default function ProductoDetalle() {
                         <span className="fw-bold text-dark ms-2">Categoría:</span> {producto.categoria}
                     </p>
                     
-                    <h3 className="text-primary mt-4">Descripción</h3>
-                    <p>{producto.descripcion}</p>
-                    
-                    {/* ⬇️ CAMBIO A SOLO "Código" */}
-                    <p className="fw-bold mt-4">Código: {producto.codigo}</p>
+                    {/* Código y Botón (parte superior) */}
+                    <p className="fw-bold">Código: {producto.codigo}</p>
 
                     {/* Botón de Contacto (WhatsApp) */}
                     <button 
-                        className="btn btn-success btn-lg mt-4 w-100"
+                        className="btn btn-success btn-lg mt-3 w-100 shadow" 
                         onClick={handleWhatsappClick}
                     >
                         Preguntar por WhatsApp
@@ -132,6 +189,21 @@ export default function ProductoDetalle() {
 
                 </div>
             </div>
+
+            {/* ⬇️ NUEVA SECCIÓN: DESCRIPCIÓN (FUERA DEL ROW, ANCHO COMPLETO) ⬇️ */}
+            <div className="row mt-5">
+                <div className="col-12">
+                    <div className="card shadow-sm p-4">
+                        <h3 className="text-primary fw-bold mb-3">
+                            Especificaciones y Descripción Detallada
+                        </h3>
+                        <p className="text-secondary" style={{ whiteSpace: 'pre-wrap' }}> 
+                            {producto.descripcion}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
         </div>
     );
 }
