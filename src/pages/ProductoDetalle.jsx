@@ -1,4 +1,6 @@
 // src/pages/ProductoDetalle.jsx
+// src/pages/ProductoDetalle.jsx
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db } from '../firebase'; 
@@ -34,6 +36,7 @@ export default function ProductoDetalle() {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     
+                    // Manejo flexible de las URLs de imágenes
                     const images = data.imagenesUrls || (data.urlImagen ? [data.urlImagen] : []);
                     data.imagenesUrls = images; 
                     
@@ -75,6 +78,33 @@ export default function ProductoDetalle() {
         setCursorPosition({ x, y });
     };
 
+    // ⬅️ FUNCIÓN: Convierte la descripción en un formato de lista o párrafos
+    const renderDescription = (description) => {
+        if (!description) return <p className="text-muted fst-italic">No se proporcionó una descripción detallada.</p>;
+
+        const lines = description.split('\n').filter(line => line.trim() !== '');
+        const isList = lines.every(line => /^\s*[-*•\d]/.test(line.trim()));
+
+        if (isList) {
+            return (
+                <ul className="list-group list-group-flush border-0">
+                    {lines.map((line, index) => (
+                        <li key={index} className="list-group-item px-0 border-0 bg-transparent text-secondary">
+                            <i className="bi bi-check-circle-fill text-success me-2"></i> 
+                            {line.replace(/^\s*[-*•\d]\.?\s*/, '').trim()}
+                        </li>
+                    ))}
+                </ul>
+            );
+        } else {
+            return lines.map((paragraph, index) => (
+                <p key={index} className="text-secondary mb-3">
+                    {paragraph}
+                </p>
+            ));
+        }
+    };
+
     // 3. Renderizado de carga y error
     if (loading) {
         return <div className="container my-5 text-center text-primary fs-5">Cargando detalles del producto...</div>;
@@ -88,13 +118,10 @@ export default function ProductoDetalle() {
 
     // Estilos dinámicos para el efecto de lupa
     const zoomStyle = isZoomed ? {
-        // Aumenta la escala (200% de zoom)
         transform: 'scale(2)', 
-        // Hace que el punto de origen de la transformación siga al cursor
         transformOrigin: `${cursorPosition.x * 100}% ${cursorPosition.y * 100}%`,
-        // Quita la transición cuando está activo para que el movimiento sea instantáneo
         transition: 'none', 
-        objectFit: 'cover' // Asegura que cubra el área cuando está ampliada
+        objectFit: 'cover'
     } : {
         transform: 'scale(1)',
         transformOrigin: 'center center',
@@ -108,20 +135,38 @@ export default function ProductoDetalle() {
         <div className="container my-5">
             
             {/* ⬅️ CONTENEDOR PRINCIPAL: GALERÍA E INFORMACIÓN (COLUMNAS) */}
+            {/* d-flex flex-row: Miniaturas y la imagen grande siempre se mantienen lado a lado (en fila) */}
             <div className="row mb-5 pb-5 border-bottom">
                 
-                {/* ⬅️ Columna IZQUIERDA: Galería (AHORA 7/12) */}
-                <div className="col-md-7 d-flex"> 
+                {/* ⬅️ Columna IZQUIERDA: Galería */}
+                <div className="col-md-7 d-flex flex-row"> 
                     
-                    {/* 1. Carrusel Vertical de Miniaturas (Nueva Columna) */}
+                    {/* 1. Carrusel de Miniaturas (Móvil horizontal, Escritorio vertical) */}
                     {producto.imagenesUrls.length > 1 && (
                         <div 
-                            className="d-flex flex-column gap-2 me-3" 
+                            // 🔑 CLASES CORREGIDAS: 
+                            // d-flex flex-row: Comportamiento por defecto (Móvil) es horizontal
+                            // d-md-flex flex-md-column: En escritorio (md y superior) se vuelve vertical
+                            className="d-flex flex-row d-md-flex flex-md-column gap-2 mb-3 mb-md-0 me-md-3 p-1" 
                             style={{ 
-                                maxHeight: '32rem', // ⬅️ Altura aumentada para el contenedor principal
-                                overflowY: 'scroll',
-                                minWidth: '95px', // ⬅️ Ancho fijo para estabilidad
-                                boxSizing: 'content-box'
+                                // Estilos para Escritorio (vertical scroll)
+                                maxHeight: '32rem', 
+                                minWidth: '95px', 
+                                boxSizing: 'content-box',
+                                
+                                // Estilos que controlan el scroll:
+                                // Ocultamos el scroll horizontal por defecto (escritorio)
+                                overflowX: 'hidden', 
+                                whiteSpace: 'normal',
+                                
+                                // Sobrescribimos en móvil (scroll horizontal):
+                                '@media (max-width: 767px)': {
+                                    overflowX: 'scroll',
+                                    overflowY: 'hidden',
+                                    whiteSpace: 'nowrap',
+                                    maxHeight: 'auto',
+                                    paddingBottom: '10px' // Espacio para la barra de scroll horizontal
+                                }
                             }}
                         >
                             {producto.imagenesUrls.map((url, index) => (
@@ -136,7 +181,9 @@ export default function ProductoDetalle() {
                                         objectFit: 'cover', 
                                         cursor: 'pointer',
                                         transition: 'border-color 0.2s',
-                                        flexShrink: 0,
+                                        flexShrink: 0, // Importante para que no se compriman horizontalmente
+                                        marginRight: index < producto.imagenesUrls.length - 1 && window.innerWidth < 768 ? '10px' : '0',
+                                        marginBottom: index < producto.imagenesUrls.length - 1 && window.innerWidth >= 768 ? '10px' : '0'
                                     }}
                                     onClick={() => { setMainImage(url); setIsZoomed(false); }} 
                                 />
@@ -147,7 +194,7 @@ export default function ProductoDetalle() {
                     {/* 2. Imagen Principal Grande (Contenedor Estático y LUPA) */}
                     <div 
                         className="card shadow-lg p-3 flex-grow-1"
-                        style={{ height: '32rem', overflow: 'hidden' }} // ⬅️ Altura aumentada para el contenedor principal
+                        style={{ height: '32rem', overflow: 'hidden' }} 
                         onMouseEnter={() => setIsZoomed(true)} 
                         onMouseLeave={() => setIsZoomed(false)} 
                         onMouseMove={handleMouseMove} 
@@ -167,7 +214,7 @@ export default function ProductoDetalle() {
                     </div>
                 </div>
                 
-                {/* ⬅️ Columna DERECHA: Información Clave y Contacto (AHORA 5/12) */}
+                {/* ⬅️ Columna DERECHA: Información Clave y Contacto (5/12) */}
                 <div className="col-md-5">
                     <h1 className="display-5 fw-bold text-dark">{producto.nombre}</h1>
                     <p className="text-muted small mb-4">
@@ -196,9 +243,10 @@ export default function ProductoDetalle() {
                         <h3 className="text-primary fw-bold mb-3">
                             Especificaciones y Descripción Detallada
                         </h3>
-                        <p className="text-secondary" style={{ whiteSpace: 'pre-wrap' }}> 
-                            {producto.descripcion}
-                        </p>
+                        
+                        {/* USO DE LA FUNCIÓN DE RENDERIZADO */}
+                        {renderDescription(producto.descripcion)} 
+
                     </div>
                 </div>
             </div>
