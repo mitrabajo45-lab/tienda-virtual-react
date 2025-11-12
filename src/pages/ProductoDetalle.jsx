@@ -7,7 +7,6 @@ import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 export default function ProductoDetalle() {
-    // 1. Obtener el ID de la URL
     const { id } = useParams(); 
     
     const [producto, setProducto] = useState(null);
@@ -17,11 +16,9 @@ export default function ProductoDetalle() {
     const [isZoomed, setIsZoomed] = useState(false); 
     const [cursorPosition, setCursorPosition] = useState({ x: 0, y: 0 }); 
 
-    // Número de WhatsApp (ejemplo)
     const WHATSAPP_NUMBER = "573001234567";
     const isMobile = window.innerWidth < 768; // Helper para estilos condicionales
 
-    // 2. Cargar datos del producto
     useEffect(() => {
         if (!id) {
             setLoading(false);
@@ -36,7 +33,6 @@ export default function ProductoDetalle() {
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    
                     const images = data.imagenesUrls || (data.urlImagen ? [data.urlImagen] : []);
                     data.imagenesUrls = images; 
                     
@@ -56,14 +52,12 @@ export default function ProductoDetalle() {
         fetchProducto();
     }, [id]);
     
-    // Función para manejar el clic de WhatsApp
     const handleWhatsappClick = () => {
         const message = `Hola, estoy interesado en el producto: ${producto.nombre} (Código: ${producto.codigo || 'N/A'}). Marca: ${producto.marca || 'N/A'}. ¿Podrían darme más información?`;
         const encodedMessage = encodeURIComponent(message);
         window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMessage}`, '_blank');
     };
 
-    // ⬅️ FUNCIÓN: Calcula la posición del cursor y el desplazamiento para el zoom
     const handleMouseMove = (e) => {
         if (!isZoomed) return;
 
@@ -74,7 +68,6 @@ export default function ProductoDetalle() {
         setCursorPosition({ x, y });
     };
 
-    // ⬅️ FUNCIÓN: Convierte la descripción en un formato de lista o párrafos
     const renderDescription = (description) => {
         if (!description) return <p className="text-muted fst-italic">No se proporcionó una descripción detallada.</p>;
 
@@ -101,7 +94,6 @@ export default function ProductoDetalle() {
         }
     };
 
-    // 3. Renderizado de carga y error
     if (loading) {
         return <div className="container my-5 text-center text-primary fs-5">Cargando detalles del producto...</div>;
     }
@@ -112,8 +104,7 @@ export default function ProductoDetalle() {
 
     if (!producto) return null;
 
-    // Estilos dinámicos para el efecto de lupa
-    const zoomStyle = (isZoomed && !isMobile) ? { // Aplicar zoom solo si no es móvil
+    const zoomStyle = (isZoomed && !isMobile) ? {
         transform: 'scale(2)', 
         transformOrigin: `${cursorPosition.x * 100}% ${cursorPosition.y * 100}%`,
         transition: 'none', 
@@ -126,7 +117,6 @@ export default function ProductoDetalle() {
     };
 
 
-    // 4. Renderizado Final (Diseño con Bootstrap)
     return (
         <div className="container my-5">
             
@@ -134,24 +124,44 @@ export default function ProductoDetalle() {
             <div className="row mb-5 pb-5 border-bottom">
                 
                 {/* ⬅️ Columna IZQUIERDA: Galería (IMAGEN + MINIATURAS) */}
-                {/* d-flex flex-column: Móvil (miniaturas encima de imagen). 
+                {/* d-flex flex-column: Móvil (miniaturas encima o debajo de imagen). 
                    flex-md-row: Escritorio (miniaturas a la izquierda de imagen). */}
                 <div className="col-md-7 d-flex flex-column flex-md-row"> 
                     
-                    {/* 1. Carrusel de Miniaturas */}
+                    {/* 2. Imagen Principal Grande (AHORA CON order-1 EN MÓVIL) */}
+                    {/* En móvil: order-1 (se muestra primero) */}
+                    {/* En escritorio: order-md-1 (se mantiene como primer elemento en la fila) */}
+                    <div 
+                        className="card shadow-lg p-3 flex-grow-1 order-1 order-md-1"
+                        style={{ height: isMobile ? 'auto' : '32rem', overflow: 'hidden' }} 
+                        onMouseEnter={() => setIsZoomed(true)} 
+                        onMouseLeave={() => setIsZoomed(false)} 
+                        onMouseMove={handleMouseMove} 
+                    >
+                        <img 
+                            src={mainImage} 
+                            alt={producto.nombre} 
+                            className="img-fluid rounded"
+                            style={{ 
+                                ...zoomStyle,
+                                maxHeight: isZoomed ? 'none' : '100%', 
+                                width: '100%', 
+                                cursor: (isZoomed && !isMobile) ? 'zoom-out' : 'zoom-in', 
+                            }}
+                        />
+                    </div>
+
+                    {/* 1. Carrusel de Miniaturas (AHORA CON order-2 EN MÓVIL) */}
+                    {/* En móvil: order-2 (se muestra segundo, debajo de la imagen) */}
+                    {/* En escritorio: order-md-2 (se mantiene como segundo elemento en la fila) */}
                     {producto.imagenesUrls.length > 1 && (
                         <div 
-                            // d-flex flex-row: Móvil (horizontal). 
-                            // flex-md-column: Escritorio (vertical).
-                            className="d-flex flex-row flex-md-column gap-2 mb-3 mb-md-0 me-md-3 p-1" 
+                            className="d-flex flex-row flex-md-column gap-2 mb-3 mb-md-0 me-md-3 p-1 order-2 order-md-2" 
                             style={{ 
-                                // Estilos de Escritorio (Scroll vertical)
                                 maxHeight: isMobile ? 'auto' : '32rem', 
                                 minWidth: isMobile ? 'auto' : '95px', 
                                 boxSizing: 'content-box',
                                 overflowY: isMobile ? 'hidden' : 'scroll', 
-
-                                // Estilos de Móvil (Scroll horizontal)
                                 overflowX: isMobile ? 'scroll' : 'hidden', 
                                 whiteSpace: isMobile ? 'nowrap' : 'normal',
                                 paddingBottom: isMobile ? '10px' : '0' 
@@ -176,28 +186,6 @@ export default function ProductoDetalle() {
                             ))}
                         </div>
                     )}
-
-                    {/* 2. Imagen Principal Grande */}
-                    <div 
-                        className="card shadow-lg p-3 flex-grow-1"
-                        style={{ height: isMobile ? 'auto' : '32rem', overflow: 'hidden' }} 
-                        onMouseEnter={() => setIsZoomed(true)} 
-                        onMouseLeave={() => setIsZoomed(false)} 
-                        onMouseMove={handleMouseMove} 
-                    >
-                        {/* Aplicamos los estilos dinámicos de zoom */}
-                        <img 
-                            src={mainImage} 
-                            alt={producto.nombre} 
-                            className="img-fluid rounded"
-                            style={{ 
-                                ...zoomStyle,
-                                maxHeight: isZoomed ? 'none' : '100%', 
-                                width: '100%', 
-                                cursor: (isZoomed && !isMobile) ? 'zoom-out' : 'zoom-in', 
-                            }}
-                        />
-                    </div>
                 </div>
                 
                 {/* ⬅️ Columna DERECHA: Información Clave y Contacto (5/12) */}
@@ -208,10 +196,8 @@ export default function ProductoDetalle() {
                         <span className="fw-bold text-dark ms-2">Categoría:</span> {producto.categoria}
                     </p>
                     
-                    {/* Código y Botón (parte superior) */}
                     <p className="fw-bold">Código: {producto.codigo}</p>
 
-                    {/* Botón de Contacto (WhatsApp) */}
                     <button 
                         className="btn btn-success btn-lg mt-3 w-100 shadow" 
                         onClick={handleWhatsappClick}
@@ -229,10 +215,7 @@ export default function ProductoDetalle() {
                         <h3 className="text-primary fw-bold mb-3">
                             Especificaciones y Descripción Detallada
                         </h3>
-                        
-                        {/* USO DE LA FUNCIÓN DE RENDERIZADO */}
                         {renderDescription(producto.descripcion)} 
-
                     </div>
                 </div>
             </div>
